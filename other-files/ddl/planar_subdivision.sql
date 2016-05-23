@@ -1,0 +1,6 @@
+﻿CREATE TABLE Bairro(
+	id NUMERIC,
+	nome VARCHAR(50),
+	geom PLANAR_SUBDIVISION,
+	CONSTRAINT id PRIMARY KEY (id)
+);
