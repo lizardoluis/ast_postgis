@@ -110,3 +110,32 @@ BEGIN
    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
+
+
+
+
+--
+-- Topological relationship.
+--
+CREATE FUNCTION omtg_topologicalrelationship() RETURNS TRIGGER AS $$
+DECLARE
+   a_tbl CONSTANT REGCLASS := TG_ARGV[0];
+   a_geom CONSTANT TEXT := quote_ident(TG_ARGV[1]);
+
+   b_tbl CONSTANT REGCLASS := TG_ARGV[2];
+   b_geom CONSTANT TEXT := quote_ident(TG_ARGV[3]);
+
+   operator CONSTANT TEXT := quote_ident(TG_ARGV[4]);
+
+BEGIN
+
+   IF TG_LEVEL != 'STATEMENT' THEN
+
+
+   END IF;
+
+
+
+   RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
