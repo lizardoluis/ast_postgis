@@ -8,6 +8,7 @@ drop table arc;
 CREATE TABLE arc (
 	id serial primary key,
 	geom omtg_uniline
+   spatial_constraint(network, node(geom))
 );
 
 CREATE TRIGGER check_arcnode_trigger
