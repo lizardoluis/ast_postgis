@@ -125,16 +125,31 @@ DECLARE
    b_tbl CONSTANT REGCLASS := TG_ARGV[2];
    b_geom CONSTANT TEXT := quote_ident(TG_ARGV[3]);
 
-   operator CONSTANT TEXT := quote_ident(TG_ARGV[4]);
+   operator _omtg_topologicalrelationship := quote_ident(TG_ARGV[4]);
 
+   res BOOLEAN;
 BEGIN
 
-   IF TG_LEVEL != 'STATEMENT' THEN
-
-
+   IF TG_NARGS != 5 OR TG_TABLE_NAME != a_tbl::TEXT OR NOT _omtg_isOMTGDomain(a_tbl, a_geom) OR NOT _omtg_isOMTGDomain(a_tbl, b_geom) THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
+         USING DETAIL = 'Invalid parameters.';
    END IF;
 
+   IF TG_LEVEL = 'STATEMENT' THEN
 
+      EXECUTE 'SELECT EXISTS(
+         SELECT 1
+         FROM '|| a_tbl ||' AS a
+         LEFT JOIN '|| b_tbl ||' AS b
+         ON st_'|| operator ||'(a.'|| a_geom ||', b.'|| b_geom ||')
+         WHERE b.'|| b_geom ||' IS NULL
+      );' into res;
+
+      IF res THEN
+         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation (%) at table %.', operator::text, TG_TABLE_NAME;
+      END IF;
+
+   END IF;
 
    RETURN NULL;
 END;

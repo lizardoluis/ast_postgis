@@ -180,9 +180,9 @@ BEGIN
       omtg_sambple, omtg_uniline, omtg_biline}'::text[]) into res;
 
    IF res THEN
-      return TRUE;
+      return 'TRUE';
    ELSE
-      return FALSE;
+      return 'FALSE';
    END IF;
 
 END;
