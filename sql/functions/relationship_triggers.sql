@@ -154,3 +154,46 @@ BEGIN
    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
+
+
+--
+-- Topological relationship.
+--
+CREATE FUNCTION omtg_topologicalrelationship_dist() RETURNS TRIGGER AS $$
+DECLARE
+   a_tbl CONSTANT REGCLASS := TG_ARGV[0];
+   a_geom CONSTANT TEXT := quote_ident(TG_ARGV[1]);
+
+   b_tbl CONSTANT REGCLASS := TG_ARGV[2];
+   b_geom CONSTANT TEXT := quote_ident(TG_ARGV[3]);
+
+   dist REAL := TG_ARGV[4];
+
+   res BOOLEAN;
+BEGIN
+
+   IF TG_NARGS != 5 OR TG_TABLE_NAME != a_tbl::TEXT OR NOT _omtg_isOMTGDomain(a_tbl, a_geom) OR NOT _omtg_isOMTGDomain(a_tbl, b_geom) THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship_dist.'
+         USING DETAIL = 'Invalid parameters.';
+   END IF;
+
+   IF TG_LEVEL = 'STATEMENT' THEN
+
+      EXECUTE 'SELECT NOT EXISTS(
+         SELECT 1
+         FROM '|| a_tbl ||' AS a
+         LEFT JOIN '|| b_tbl ||' AS b
+         ON ST_DWITHIN(a.'|| a_geom ||', b.'|| b_geom ||', '|| dist ||')
+         WHERE b.'|| b_geom ||' IS NOT NULL
+      );' into res;
+
+      IF res THEN
+         RAISE EXCEPTION 'OMT-G Topological Relationship Distance constraint violation between tables % and %.', TG_TABLE_NAME, b_tbl
+            USING DETAIL = 'Spatial object is not within the given distance.';
+      END IF;
+
+   END IF;
+
+   RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
