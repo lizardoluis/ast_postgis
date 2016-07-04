@@ -86,14 +86,14 @@ BEGIN
        IF TG_TABLE_NAME = arc_tbl::TEXT THEN
 
           IF NOT _omtg_arcnodenetwork_onarc(arc_tbl, node_tbl, arc_geom, node_geom) THEN
-             RAISE EXCEPTION 'OMT-G Arc-Node constraint violation at table %.', TG_TABLE_NAME
+             RAISE EXCEPTION 'OMT-G Arc-Node network constraint violation at table %.', TG_TABLE_NAME
                 USING DETAIL = 'For each arc at least two nodes must exist at the arc extrem points.';
           END IF;
 
        ELSIF TG_TABLE_NAME = node_tbl::TEXT THEN
 
           IF NOT _omtg_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
-             RAISE EXCEPTION 'OMT-G Arc-Node constraint violation at table %.', TG_TABLE_NAME
+             RAISE EXCEPTION 'OMT-G Arc-Node network constraint violation at table %.', TG_TABLE_NAME
                 USING DETAIL = 'For each node at least one arc must exist.';
           END IF;
 
@@ -105,6 +105,52 @@ BEGIN
           END IF;
 
        END IF;
+   END IF;
+
+   RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+
+--
+-- Arc-Arc network.
+--
+CREATE FUNCTION omtg_arcarcnetwork() RETURNS TRIGGER AS $$
+DECLARE
+   arc_tbl CONSTANT REGCLASS := TG_ARGV[0];
+   arc_geom CONSTANT TEXT := quote_ident(TG_ARGV[1]);
+
+   arc_domain CONSTANT TEXT := _omtg_getGeomColumnDomain(arc_tbl, arc_geom);
+
+   res BOOLEAN;
+BEGIN
+
+   IF TG_NARGS != 2 OR TG_TABLE_NAME != arc_tbl::TEXT OR (arc_domain != 'omtg_uniline' AND arc_domain != 'omtg_biline' ) THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_arcarcnetwork.'
+         USING DETAIL = 'Invalid parameters.';
+   END IF;
+
+   IF TG_LEVEL != 'STATEMENT' THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+        USING DETAIL = 'Trigger must be of STATEMENT level.';
+   END IF;
+
+   EXECUTE 'select exists(
+      select 1
+      from '|| arc_tbl ||' as a, '|| arc_tbl ||' as b
+      where a.ctid < b.ctid
+      	and st_intersects(a.'|| arc_geom ||', b.'|| arc_geom ||')
+      	and not st_intersects(st_startpoint(a.'|| arc_geom ||'), st_startpoint(b.'|| arc_geom ||'))
+      	and not st_intersects(st_startpoint(a.'|| arc_geom ||'), st_endpoint(b.'|| arc_geom ||'))
+      	and not st_intersects(st_endpoint(a.'|| arc_geom ||'), st_startpoint(b.'|| arc_geom ||'))
+      	and not st_intersects(st_endpoint(a.'|| arc_geom ||'), st_endpoint(b.'|| arc_geom ||'))
+      );' into res;
+
+   IF res THEN
+      RAISE EXCEPTION 'OMT-G Arc-Arc network constraint violation at table %.', TG_TABLE_NAME
+         USING DETAIL = 'Each arc can only be connected to another arc on its start or end point.';
    END IF;
 
    RETURN NULL;
@@ -135,29 +181,33 @@ BEGIN
          USING DETAIL = 'Invalid parameters.';
    END IF;
 
-   IF TG_LEVEL = 'STATEMENT' THEN
-
-      EXECUTE 'SELECT EXISTS(
-         SELECT 1
-         FROM '|| a_tbl ||' AS a
-         LEFT JOIN '|| b_tbl ||' AS b
-         ON st_'|| operator ||'(a.'|| a_geom ||', b.'|| b_geom ||')
-         WHERE b.'|| b_geom ||' IS NULL
-      );' into res;
-
-      IF res THEN
-         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation (%) at table %.', operator::text, TG_TABLE_NAME;
-      END IF;
-
+   IF TG_LEVEL != 'STATEMENT' THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
+        USING DETAIL = 'Trigger must be of STATEMENT level.';
    END IF;
+
+   EXECUTE 'SELECT EXISTS(
+      SELECT 1
+      FROM '|| a_tbl ||' AS a
+      LEFT JOIN '|| b_tbl ||' AS b
+      ON st_'|| operator ||'(a.'|| a_geom ||', b.'|| b_geom ||')
+      WHERE b.'|| b_geom ||' IS NULL
+   );' into res;
+
+   IF res THEN
+      RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation (%) at table %.', operator::text, TG_TABLE_NAME;
+   END IF;
+
 
    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
 
+
+
 --
--- Topological relationship.
+-- Topological relationship distance.
 --
 CREATE FUNCTION omtg_topologicalrelationship_dist() RETURNS TRIGGER AS $$
 DECLARE
@@ -177,21 +227,22 @@ BEGIN
          USING DETAIL = 'Invalid parameters.';
    END IF;
 
-   IF TG_LEVEL = 'STATEMENT' THEN
+   IF TG_LEVEL != 'STATEMENT' THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship_dist.'
+        USING DETAIL = 'Trigger must be of STATEMENT level.';
+   END IF;
 
-      EXECUTE 'SELECT NOT EXISTS(
-         SELECT 1
-         FROM '|| a_tbl ||' AS a
-         LEFT JOIN '|| b_tbl ||' AS b
-         ON ST_DWITHIN(a.'|| a_geom ||', b.'|| b_geom ||', '|| dist ||')
-         WHERE b.'|| b_geom ||' IS NOT NULL
-      );' into res;
+   EXECUTE 'SELECT NOT EXISTS(
+      SELECT 1
+      FROM '|| a_tbl ||' AS a
+      LEFT JOIN '|| b_tbl ||' AS b
+      ON ST_DWITHIN(a.'|| a_geom ||', b.'|| b_geom ||', '|| dist ||')
+      WHERE b.'|| b_geom ||' IS NOT NULL
+   );' into res;
 
-      IF res THEN
-         RAISE EXCEPTION 'OMT-G Topological Relationship Distance constraint violation between tables % and %.', TG_TABLE_NAME, b_tbl
-            USING DETAIL = 'Spatial object is not within the given distance.';
-      END IF;
-
+   IF res THEN
+      RAISE EXCEPTION 'OMT-G Topological Relationship Distance constraint violation between tables % and %.', TG_TABLE_NAME, b_tbl
+         USING DETAIL = 'Spatial object is not within the given distance.';
    END IF;
 
    RETURN NULL;
