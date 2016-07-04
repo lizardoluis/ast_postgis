@@ -76,35 +76,61 @@ BEGIN
 
    IF TG_OP = 'INSERT' OR TG_OP ='UPDATE' THEN
 
-       -- Validate input parameters
-       IF TG_NARGS != 4 OR node_domain != 'omtg_node' OR (arc_domain != 'omtg_uniline' AND arc_domain != 'omtg_biline' ) THEN
-          RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
-             USING DETAIL = 'Invalid parameters.';
-       END IF;
+      -- Validate input parameters
+      IF TG_NARGS != 4 OR node_domain != 'omtg_node' OR (arc_domain != 'omtg_uniline' AND arc_domain != 'omtg_biline' ) THEN
+         RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+            USING DETAIL = 'Invalid parameters.';
+      END IF;
 
-       -- Check which table fired the trigger
-       IF TG_TABLE_NAME = arc_tbl::TEXT THEN
+      -- Check which table fired the trigger
+      IF TG_TABLE_NAME = arc_tbl::TEXT THEN
 
-          IF NOT _omtg_arcnodenetwork_onarc(arc_tbl, node_tbl, arc_geom, node_geom) THEN
-             RAISE EXCEPTION 'OMT-G Arc-Node network constraint violation at table %.', TG_TABLE_NAME
-                USING DETAIL = 'For each arc at least two nodes must exist at the arc extrem points.';
-          END IF;
+         IF NOT _omtg_arcnodenetwork_onarc(arc_tbl, node_tbl, arc_geom, node_geom) THEN
+            RAISE EXCEPTION 'OMT-G Arc-Node network constraint violation at table %.', TG_TABLE_NAME
+               USING DETAIL = 'For each arc at least two nodes must exist at the arc extrem points.';
+         END IF;
 
-       ELSIF TG_TABLE_NAME = node_tbl::TEXT THEN
+      ELSIF TG_TABLE_NAME = node_tbl::TEXT THEN
 
-          IF NOT _omtg_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
-             RAISE EXCEPTION 'OMT-G Arc-Node network constraint violation at table %.', TG_TABLE_NAME
-                USING DETAIL = 'For each node at least one arc must exist.';
-          END IF;
+         IF NOT _omtg_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
+            RAISE EXCEPTION 'OMT-G Arc-Node network constraint violation at table %.', TG_TABLE_NAME
+               USING DETAIL = 'For each node at least one arc must exist.';
+         END IF;
 
-       ELSE
+      ELSE
 
-          IF NOT _omtg_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
-             RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
-                USING DETAIL = 'Was not possible to identify the table which fired the trigger.';
-          END IF;
+         IF NOT _omtg_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
+            RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+               USING DETAIL = 'Was not possible to identify the table which fired the trigger.';
+         END IF;
 
-       END IF;
+      END IF;
+
+   ELSIF TG_OP = 'DELETE' THEN
+
+      IF TG_TABLE_NAME = arc_tbl::TEXT THEN
+
+         IF NOT _omtg_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
+            RAISE EXCEPTION 'OMT-G Arc-Node network constraint violation at table %.', TG_TABLE_NAME
+               USING DETAIL = 'Cannot delete the arc because there are nodes connected to it.';
+         END IF;
+
+      ELSIF TG_TABLE_NAME = node_tbl::TEXT THEN
+
+         IF NOT _omtg_arcnodenetwork_onarc(arc_tbl, node_tbl, arc_geom, node_geom) THEN
+            RAISE EXCEPTION 'OMT-G Arc-Node network constraint violation at table %.', TG_TABLE_NAME
+               USING DETAIL = 'Cannot delete the node because there are arcs connected to it.';
+         END IF;
+
+      ELSE
+
+         IF NOT _omtg_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
+            RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+               USING DETAIL = 'Was not possible to identify the table which fired the trigger.';
+         END IF;
+
+      END IF;
+
    END IF;
 
    RETURN NULL;
