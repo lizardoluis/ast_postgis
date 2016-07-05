@@ -69,6 +69,11 @@ DECLARE
 BEGIN
    -- TODO: identify automatically the argments
 
+   IF TG_WHEN != 'AFTER' THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+         USING DETAIL = 'Trigger must be fired with AFTER statement.';
+   END IF
+
    IF TG_LEVEL != 'STATEMENT' THEN
       RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
         USING DETAIL = 'Trigger must be of STATEMENT level.';
@@ -158,8 +163,13 @@ BEGIN
          USING DETAIL = 'Invalid parameters.';
    END IF;
 
+   IF TG_WHEN != 'AFTER' THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_arcarcnetwork.'
+         USING DETAIL = 'Trigger must be fired with AFTER statement.';
+   END IF
+
    IF TG_LEVEL != 'STATEMENT' THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+      RAISE EXCEPTION 'OMT-G error at omtg_arcarcnetwork.'
         USING DETAIL = 'Trigger must be of STATEMENT level.';
    END IF;
 
@@ -207,10 +217,16 @@ BEGIN
          USING DETAIL = 'Invalid parameters.';
    END IF;
 
+   IF TG_WHEN != 'AFTER' THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
+         USING DETAIL = 'Trigger must be fired with AFTER statement.';
+   END IF
+
    IF TG_LEVEL != 'STATEMENT' THEN
       RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
         USING DETAIL = 'Trigger must be of STATEMENT level.';
    END IF;
+
 
    EXECUTE 'SELECT EXISTS(
       SELECT 1
@@ -253,10 +269,17 @@ BEGIN
          USING DETAIL = 'Invalid parameters.';
    END IF;
 
+
+   IF TG_WHEN != 'AFTER' THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship_dist.'
+         USING DETAIL = 'Trigger must be fired with AFTER statement.';
+   END IF
+
    IF TG_LEVEL != 'STATEMENT' THEN
       RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship_dist.'
         USING DETAIL = 'Trigger must be of STATEMENT level.';
    END IF;
+   
 
    EXECUTE 'SELECT NOT EXISTS(
       SELECT 1
