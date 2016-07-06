@@ -72,7 +72,7 @@ BEGIN
    IF TG_WHEN != 'AFTER' THEN
       RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
          USING DETAIL = 'Trigger must be fired with AFTER statement.';
-   END IF
+   END IF;
 
    IF TG_LEVEL != 'STATEMENT' THEN
       RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
@@ -125,6 +125,9 @@ BEGIN
          END IF;
       END IF;
 
+   ELSE
+      RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+         USING DETAIL = 'Event not supported. Please create a trigger with INSERT, UPDATE or a DELETE event.';
    END IF;
 
    RETURN NULL;
@@ -150,7 +153,7 @@ BEGIN
    IF TG_WHEN != 'AFTER' THEN
       RAISE EXCEPTION 'OMT-G error at omtg_arcarcnetwork.'
          USING DETAIL = 'Trigger must be fired with AFTER statement.';
-   END IF
+   END IF;
 
    IF TG_LEVEL != 'STATEMENT' THEN
       RAISE EXCEPTION 'OMT-G error at omtg_arcarcnetwork.'
@@ -196,24 +199,52 @@ DECLARE
    b_tbl CONSTANT REGCLASS := TG_ARGV[2];
    b_geom CONSTANT TEXT := quote_ident(TG_ARGV[3]);
 
-   operator _omtg_topologicalrelationship := quote_ident(TG_ARGV[4]);
+   operator _omtg_topologicalrelationship;
+   dist REAL;
 
    res BOOLEAN;
 BEGIN
 
-   IF TG_NARGS != 5 OR TG_TABLE_NAME != a_tbl::TEXT OR NOT _omtg_isOMTGDomain(a_tbl, a_geom) OR NOT _omtg_isOMTGDomain(a_tbl, b_geom) THEN
+   IF TG_WHEN != 'AFTER' THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
+         USING DETAIL = 'Trigger must be fired with AFTER statement.';
+   END IF;
+
+   IF TG_LEVEL != 'STATEMENT' THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
+         USING DETAIL = 'Trigger must be of STATEMENT level.';
+   END IF;
+
+   IF TG_NARGS != 5 OR NOT _omtg_isOMTGDomain(a_tbl, a_geom) OR NOT _omtg_isOMTGDomain(a_tbl, b_geom) THEN
       RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
          USING DETAIL = 'Invalid parameters.';
    END IF;
 
-   IF TG_WHEN != 'AFTER' THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
-         USING DETAIL = 'Trigger must be fired with AFTER statement.';
-   END IF
 
-   IF TG_LEVEL != 'STATEMENT' THEN
+   --IF isnumeric(TG_ARGV[4]) THEN
+
+   --END IF;
+
+
+   IF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') THEN
+
+      -- Trigger table must be the same used on the first parameter
+      IF TG_TABLE_NAME != a_tbl::TEXT THEN
+         RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
+            USING DETAIL = 'Invalid parameters. Table that fires the trigger must be the first parameter of the function when firing after INSERT or UPDATE.';
+      END IF;
+
+   ELSIF TG_OP = 'DELETE' THEN
+
+      -- Trigger table must be the same used on the second parameter
+      IF TG_TABLE_NAME != b_tbl::TEXT THEN
+         RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
+            USING DETAIL = 'Invalid parameters. Table that fires the trigger must be the second parameter of the function when firing after a DELETE.';
+      END IF;
+
+   ELSE
       RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
-        USING DETAIL = 'Trigger must be of STATEMENT level.';
+         USING DETAIL = 'Event not supported. Please create a trigger with INSERT, UPDATE or a DELETE event.';
    END IF;
 
 
@@ -228,7 +259,6 @@ BEGIN
    IF res THEN
       RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation (%) at table %.', operator::text, TG_TABLE_NAME;
    END IF;
-
 
    RETURN NULL;
 END;
@@ -262,7 +292,7 @@ BEGIN
    IF TG_WHEN != 'AFTER' THEN
       RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship_dist.'
          USING DETAIL = 'Trigger must be fired with AFTER statement.';
-   END IF
+   END IF;
 
    IF TG_LEVEL != 'STATEMENT' THEN
       RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship_dist.'
