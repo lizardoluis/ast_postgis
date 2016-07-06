@@ -187,3 +187,20 @@ BEGIN
 
 END;
 $$  LANGUAGE plpgsql;
+
+
+
+--
+-- This function checks if the argument text can be converted to a numeric type
+--
+CREATE OR REPLACE FUNCTION _omtg_isnumeric(text) RETURNS BOOLEAN AS $$
+DECLARE x NUMERIC;
+BEGIN
+    x = $1::NUMERIC;
+    RETURN TRUE;
+EXCEPTION WHEN others THEN
+    RETURN FALSE;
+END;
+$$
+STRICT
+LANGUAGE plpgsql IMMUTABLE;
