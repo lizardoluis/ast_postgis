@@ -221,11 +221,6 @@ BEGIN
    END IF;
 
 
-   --IF isnumeric(TG_ARGV[4]) THEN
-
-   --END IF;
-
-
    IF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') THEN
 
       -- Trigger table must be the same used on the first parameter
@@ -248,69 +243,40 @@ BEGIN
    END IF;
 
 
-   EXECUTE 'SELECT EXISTS(
-      SELECT 1
-      FROM '|| a_tbl ||' AS a
-      LEFT JOIN '|| b_tbl ||' AS b
-      ON st_'|| operator ||'(a.'|| a_geom ||', b.'|| b_geom ||')
-      WHERE b.'|| b_geom ||' IS NULL
-   );' into res;
+   -- Checks if the fourth argument is a number to perform near function or normal.
+   IF _omtg_isnumeric(TG_ARGV[4]) THEN
+      dist := TG_ARGV[4];
 
-   IF res THEN
-      RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation (%) at table %.', operator::text, TG_TABLE_NAME;
-   END IF;
+      -- Near check
+      EXECUTE 'SELECT NOT EXISTS(
+         SELECT 1
+         FROM '|| a_tbl ||' AS a
+         LEFT JOIN '|| b_tbl ||' AS b
+         ON ST_DWITHIN(a.'|| a_geom ||', b.'|| b_geom ||', '|| dist ||')
+         WHERE b.'|| b_geom ||' IS NOT NULL
+      );' into res;
 
-   RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
+      IF res THEN
+         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation between tables % and %.', a_tbl, b_tbl
+            USING DETAIL = 'Spatial object is not within the given distance.';
+      END IF;
 
+   ELSE
+      operator := quote_ident(TG_ARGV[4]);
 
+      -- Topological test
+      EXECUTE 'SELECT EXISTS(
+         SELECT 1
+         FROM '|| a_tbl ||' AS a
+         LEFT JOIN '|| b_tbl ||' AS b
+         ON st_'|| operator ||'(a.'|| a_geom ||', b.'|| b_geom ||')
+         WHERE b.'|| b_geom ||' IS NULL
+      );' into res;
 
+      IF res THEN
+         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation (%) between tables % and %.', operator::text, a_tbl, b_tbl;
+      END IF;
 
---
--- Topological relationship distance.
---
-CREATE FUNCTION omtg_topologicalrelationship_dist() RETURNS TRIGGER AS $$
-DECLARE
-   a_tbl CONSTANT REGCLASS := TG_ARGV[0];
-   a_geom CONSTANT TEXT := quote_ident(TG_ARGV[1]);
-
-   b_tbl CONSTANT REGCLASS := TG_ARGV[2];
-   b_geom CONSTANT TEXT := quote_ident(TG_ARGV[3]);
-
-   dist REAL := TG_ARGV[4];
-
-   res BOOLEAN;
-BEGIN
-
-   IF TG_NARGS != 5 OR TG_TABLE_NAME != a_tbl::TEXT OR NOT _omtg_isOMTGDomain(a_tbl, a_geom) OR NOT _omtg_isOMTGDomain(a_tbl, b_geom) THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship_dist.'
-         USING DETAIL = 'Invalid parameters.';
-   END IF;
-
-
-   IF TG_WHEN != 'AFTER' THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship_dist.'
-         USING DETAIL = 'Trigger must be fired with AFTER statement.';
-   END IF;
-
-   IF TG_LEVEL != 'STATEMENT' THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship_dist.'
-        USING DETAIL = 'Trigger must be of STATEMENT level.';
-   END IF;
-
-
-   EXECUTE 'SELECT NOT EXISTS(
-      SELECT 1
-      FROM '|| a_tbl ||' AS a
-      LEFT JOIN '|| b_tbl ||' AS b
-      ON ST_DWITHIN(a.'|| a_geom ||', b.'|| b_geom ||', '|| dist ||')
-      WHERE b.'|| b_geom ||' IS NOT NULL
-   );' into res;
-
-   IF res THEN
-      RAISE EXCEPTION 'OMT-G Topological Relationship Distance constraint violation between tables % and %.', TG_TABLE_NAME, b_tbl
-         USING DETAIL = 'Spatial object is not within the given distance.';
    END IF;
 
    RETURN NULL;
