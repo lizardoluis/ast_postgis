@@ -1,7 +1,7 @@
 Overview
 ========
 
-This PostgreSQL extension introduces the spatial integrity constraints defined in [OMT-G](http://homepages.dcc.ufmg.br/~clodoveu/DocuWiki/doku.php?id=omtg), an object-oriented data model for geographic applications.
+This PostgreSQL extension incorporates into PostgreSQL the spatial integrity constraints defined in [OMT-G](http://homepages.dcc.ufmg.br/~clodoveu/DocuWiki/doku.php?id=omtg), an object-oriented data model for geographic applications.
 
 Motivation
 ----------
@@ -22,8 +22,8 @@ And requires the extensions:
 * **postgis**
 * **postgis_topology**
 
-Build
-=====
+Build and Install
+=================
 
 ## From source ##
 
@@ -39,10 +39,6 @@ Then install:
 
        sudo make install
 
-
-Install
-=======
-
 After you've built and installed the artifacts, fire up `psql`:
 
       postgres=# CREATE EXTENSION postgis_omtg;
@@ -53,7 +49,7 @@ After you've built and installed the artifacts, fire up `psql`:
 USAGE
 =====
 
-In this section are explained how this extension can be used on a OMT-G based spatial database.
+Here is explained how this extension works.
 
 Domains
 -------
@@ -174,7 +170,7 @@ The following figure shows a schema fragment for a bus transportation network (n
 
 <img src="https://github.com/lizardoluis/postgis_omtg/blob/master/examples/transportation_system/squema.png" alt="Transportation system schema" width="50%">
 
-The implementation of this schema that uses the `postgis_omtg` extension and considerers all the spatial constraints is as following:
+The implementation of this schema that uses the `postgis_omtg` extension and considerers all the spatial constraints is as follows:
 
       create table bus_line (
          line_number integer primary key,
@@ -224,4 +220,4 @@ The implementation of this schema that uses the `postgis_omtg` extension and con
       	EXECUTE PROCEDURE omtg_arcnodenetwork('bus_route_segment', 'geom', 'bus_stop', 'geom');
 
 
-Unfortunately, due to PostgreSQL limitations, for each relationship constraint, two triggers must be created, one for `INSERT` and `UPDATE` statements on one table and another trigger for `DELETE` statements at the second table of the relationship. All triggers must be fired `AFTER` a `STATEMENT` execution. 
+Unfortunately, due to PostgreSQL limitations, for each relationship constraint, two triggers must be created, one for `INSERT` and `UPDATE` statements on one table and another trigger for `DELETE` statements on the second table of the relationship. All triggers must be fired `AFTER` a `STATEMENT` execution. 
