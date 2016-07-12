@@ -135,7 +135,7 @@ The trigger functions used for spatial relationship constraints are:
    </thead>
    <tr>
       <td>Topological Relationship</td>
-      <td><code>omtg_topologicalrelationship(a_tbl, a_geom, b_tbl, b_geom, operator)</code></td>
+      <td><code>omtg_topologicalrelationship(a_tbl, a_geom, b_tbl, b_geom, spatial_relation)</code></td>
    </tr>
    <tr>
       <td>Topological Relationship (near)</td>
@@ -151,7 +151,20 @@ The trigger functions used for spatial relationship constraints are:
    </tr>
 </table>
 
-Unfortunately, due to PostgreSQL limitations, for each relationship constraint, two triggers must be created, one for `INSERT` and `UPDATE` statements on one table and another trigger for `DELETE` statements at the second table of the relationship. All triggers must be fired `AFTER` a `STATEMENT` execution. The next section shows an use case example (also available in the `examples` folder) intended to clarify the use of this extension.
+The available `spatial_relations` are:
+
+* contains
+* containsproperly
+* covers
+* coveredby
+* crosses
+* disjoint
+* intersects
+* overlaps
+* touches
+* within
+
+The next section shows an use case example (also available in the `examples` folder) intended to clarify the use of this extension.
 
 
 Transportation system use case
@@ -161,7 +174,7 @@ The following figure shows a schema fragment for a bus transportation network (n
 
 <img src="https://github.com/lizardoluis/postgis_omtg/blob/master/examples/transportation_system/squema.png" alt="Transportation system schema" width="50%">
 
-The implementation of this schema using the _postgis_omtg_ extension and considering all the spatial constraints is as following:
+The implementation of this schema that uses the `postgis_omtg` extension and considerers all the spatial constraints is as following:
 
       create table bus_line (
          line_number integer primary key,
@@ -209,3 +222,6 @@ The implementation of this schema using the _postgis_omtg_ extension and conside
          AFTER DELETE ON bus_stop
       	FOR EACH STATEMENT
       	EXECUTE PROCEDURE omtg_arcnodenetwork('bus_route_segment', 'geom', 'bus_stop', 'geom');
+
+
+Unfortunately, due to PostgreSQL limitations, for each relationship constraint, two triggers must be created, one for `INSERT` and `UPDATE` statements on one table and another trigger for `DELETE` statements at the second table of the relationship. All triggers must be fired `AFTER` a `STATEMENT` execution. 
