@@ -1,7 +1,7 @@
 Overview
 ========
 
-This PostgreSQL extension incorporates into PostgreSQL the spatial integrity constraints defined in [OMT-G](http://homepages.dcc.ufmg.br/~clodoveu/DocuWiki/doku.php?id=omtg), an object-oriented data model for geographic applications.
+This PostgreSQL extension incorporates into PostgreSQL spatial integrity constraints defined in [OMT-G](http://homepages.dcc.ufmg.br/~clodoveu/DocuWiki/doku.php?id=omtg), an object-oriented data model for geographic applications.
 
 Motivation
 ----------
@@ -21,6 +21,8 @@ And requires the extensions:
 
 * **postgis**
 * **postgis_topology**
+
+
 
 Build and Install
 =================
@@ -46,7 +48,7 @@ After you've built and installed the artifacts, fire up `psql`:
 
 
 
-USAGE
+Usage
 =====
 
 Here is explained how this extension works.
@@ -220,4 +222,4 @@ The implementation of this schema that uses the `postgis_omtg` extension and con
       	EXECUTE PROCEDURE omtg_arcnodenetwork('bus_route_segment', 'geom', 'bus_stop', 'geom');
 
 
-Unfortunately, due to PostgreSQL limitations, for each relationship constraint, two triggers must be created, one for `INSERT` and `UPDATE` statements on one table and another trigger for `DELETE` statements on the second table of the relationship. All triggers must be fired `AFTER` a `STATEMENT` execution. 
+Unfortunately, due to PostgreSQL limitations, for each relationship constraint, two triggers must be created, one for `INSERT` and `UPDATE` statements on one table and another trigger for `DELETE` statements on the second table of the relationship. All triggers must be fired `AFTER` a `STATEMENT` execution.

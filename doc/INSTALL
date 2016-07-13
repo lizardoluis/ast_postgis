@@ -1,0 +1,18 @@
+## From source ##
+
+If you aren't using the `pg_config` on your path (or don't have it on your path), specify the correct one to build against:
+
+        PG_CONFIG=/Library/PostgreSQL/9.5/bin/pg_config make
+
+Or to build with what's on your path, just:
+
+        make
+
+Then install:
+
+       sudo make install
+
+After you've built and installed the artifacts, fire up `psql`:
+
+      postgres=# CREATE EXTENSION postgis_omtg;
+      CREATE EXTENSION
