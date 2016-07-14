@@ -149,9 +149,6 @@ BEGIN
                WHEN 'omtg_sample' THEN
                   PERFORM _omtg_createTriggerOnTable(tname, 'sample', omtg_column.cname);
 
-               WHEN 'omtg_tesselation' THEN
-                  PERFORM _omtg_createTriggerOnTable(tname, 'tesselation', omtg_column.cname);
-
                WHEN 'omtg_tin' THEN
                   PERFORM _omtg_createTriggerOnTable(tname, 'tin',  omtg_column.cname);
 
