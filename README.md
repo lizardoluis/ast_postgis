@@ -147,6 +147,10 @@ The trigger functions used for spatial relationship constraints are:
       <td>Arc-Arc Network</td>
       <td><code>omtg_arcnodenetwork(arc_tbl, arc_geom)</code></td>
    </tr>
+   <tr>
+      <td>Aggregation</td>
+      <td><code>omtg_aggregation(part_tbl, part_geom, whole_tbl, whole_geom)</code></td>
+   </tr>
 </table>
 
 The available `spatial_relations` are:
