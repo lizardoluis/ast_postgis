@@ -215,7 +215,7 @@ BEGIN
          USING DETAIL = 'Trigger must be of STATEMENT level.';
    END IF;
 
-   IF TG_NARGS != 5 OR NOT _omtg_isOMTGDomain(a_tbl, a_geom) OR NOT _omtg_isOMTGDomain(a_tbl, b_geom) THEN
+   IF TG_NARGS != 5 OR NOT _omtg_isOMTGDomain(a_tbl, a_geom) OR NOT _omtg_isOMTGDomain(b_tbl, b_geom) THEN
       RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
          USING DETAIL = 'Invalid parameters.';
    END IF;
@@ -278,6 +278,96 @@ BEGIN
       END IF;
 
    END IF;
+
+   RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+
+
+--
+-- Aggregation.
+--
+CREATE FUNCTION omtg_aggregation() RETURNS TRIGGER AS $$
+DECLARE
+
+   part_tbl CONSTANT REGCLASS := TG_ARGV[0];
+   part_geom CONSTANT TEXT := quote_ident(TG_ARGV[1]);
+
+   whole_tbl CONSTANT REGCLASS := TG_ARGV[2];
+   whole_geom CONSTANT TEXT := quote_ident(TG_ARGV[3]);
+
+   res1 BOOLEAN;
+   res2 BOOLEAN;
+   res3 BOOLEAN;
+BEGIN
+
+   IF TG_WHEN != 'AFTER' THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_aggregation.'
+         USING DETAIL = 'Trigger must be fired with AFTER statement.';
+   END IF;
+
+   IF TG_LEVEL != 'STATEMENT' THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_aggregation.'
+         USING DETAIL = 'Trigger must be of STATEMENT level.';
+   END IF;
+
+   IF TG_NARGS != 4 OR TG_TABLE_NAME != part_tbl::TEXT OR NOT _omtg_isOMTGDomain(whole_tbl, whole_geom) OR NOT _omtg_isOMTGDomain(part_tbl, part_geom) THEN
+      RAISE EXCEPTION 'OMT-G error at omtg_aggregation.'
+         USING DETAIL = 'Invalid parameters.';
+   END IF;
+
+
+
+   -- 1. Pi intersection W = Pi, for all i such as 0 <= i <= n
+   EXECUTE 'SELECT EXISTS (
+      select 1
+      from '|| part_tbl ||' c
+      where c.CTID not in
+      (
+         select b.CTID
+         from '|| whole_tbl ||' a, '|| part_tbl ||' b
+         where ST_Equals(ST_Intersection(a.'|| whole_geom ||', b.'|| part_geom ||'), b.'|| part_geom ||')
+      )
+   );' into res1;
+
+   IF res1 THEN
+      RAISE EXCEPTION 'OMT-G Aggregation constraint violation with tables % and %.', whole_tbl, part_tbl
+         USING DETAIL = 'The geometry of each PART should be entirely contained within the geometry of the WHOLE.';
+   END IF;
+
+
+
+   -- 3. ((Pi touch Pj) or (Pi disjoint Pj)) = T for all i, j such as i != j
+   EXECUTE 'SELECT EXISTS (
+      select 1
+      from '|| part_tbl ||' b1, '|| part_tbl ||' b2
+      where b1.ctid < b2.ctid and
+      (not st_touches(b1.'|| part_geom ||', b2.'|| part_geom ||') and not st_disjoint(b1.'|| part_geom ||', b2.'|| part_geom ||'))
+   );' into res2;
+
+   IF res2 THEN
+      RAISE EXCEPTION 'OMT-G Aggregation constraint violation with tables % and %.', whole_tbl, part_tbl
+         USING DETAIL = 'No overlapping among the PARTS is allowed.';
+   END IF;
+
+
+
+   -- 2. (W intersection all P) = W
+   EXECUTE 'WITH union_geom AS (
+   	select st_union('|| part_geom ||') as ugeom
+   	from '|| part_tbl ||'
+   )
+   select not st_equals(a.'|| whole_geom ||', b.ugeom)
+   from '|| whole_tbl ||' a, union_geom b;' into res3;
+
+   IF res3 THEN
+      RAISE EXCEPTION 'OMT-G Aggregation constraint violation with tables % and %.', whole_tbl, part_tbl
+         USING DETAIL = 'The geometry of the WHOLE should be fully covered by the geometry of the PARTS.';
+   END IF;
+
 
    RETURN NULL;
 END;
