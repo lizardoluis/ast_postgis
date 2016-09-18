@@ -350,18 +350,14 @@ BEGIN
 
    IF res2 THEN
       RAISE EXCEPTION 'OMT-G Aggregation constraint violation with tables % and %.', whole_tbl, part_tbl
-         USING DETAIL = 'No overlapping among the PARTS is allowed.';
+         USING DETAIL = 'Overlapping among the PARTS is not allowed.';
    END IF;
 
 
 
    -- 2. (W intersection all P) = W
-   EXECUTE 'WITH union_geom AS (
-   	select st_union('|| part_geom ||') as ugeom
-   	from '|| part_tbl ||'
-   )
-   select not st_equals(a.'|| whole_geom ||', b.ugeom)
-   from '|| whole_tbl ||' a, union_geom b;' into res3;
+   EXECUTE 'SELECT NOT st_equals(st_union(a.'|| whole_geom ||'), st_union(b.'|| part_geom ||'))
+   FROM '|| whole_tbl ||' a, '|| part_tbl ||' b' into res3;
 
    IF res3 THEN
       RAISE EXCEPTION 'OMT-G Aggregation constraint violation with tables % and %.', whole_tbl, part_tbl

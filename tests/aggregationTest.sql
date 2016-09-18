@@ -53,9 +53,16 @@ WHERE b.geom IS NOT NULL
 
 
 -- 1. Pi intersection W = Pi, for all i such as 0 <= i <= n
-select *
-from tablea a, tableb b
-where not ST_Equals(ST_Intersection(a.geom, b.geom), b.geom);
+SELECT EXISTS (
+      select 1
+      from tablec c
+      where c.CTID not in
+      (
+         select b.CTID
+         from tablea a, tablec b
+         where ST_Equals(ST_Intersection(a.geom, b.geom), b.geom)
+      )
+   );
 
 -- 3. ((Pi touch Pj) or (Pi disjoint Pj)) = T for all i, j such as i != j
 select *
@@ -70,6 +77,14 @@ WITH union_geom AS (
 )
 select st_equals(a.geom, b.geom)
 from tablea a, union_geom b;
+
+WITH union_geom AS (
+	select st_union(geom) as geom
+	from tablec
+)
+select st_equals(a.geom, b.geom)
+from tablea a left join union_geom b
+on st_intersects(a.geom, b.geom);
 
 
 
