@@ -169,8 +169,11 @@ The available `spatial_relations` are:
 The next section shows an use case example (also available in the `examples` folder) intended to clarify the use of this extension.
 
 
-Transportation system use case
-------------------------------
+Use Case
+========
+
+Transportation system
+---------------------
 
 The following figure shows a schema fragment for a bus transportation network (nodes at bus stops and unidirectional arcs corresponding to route segments) that serves a set of school districts. A conventional class holds the attributes for the bus line. The schema embeds spatial integrity constraints for (1) the network relationship (each route segment must be related to two bus stops), (2) a “contains” relationship (school district cannot exists without a bus stop), and (3) the geometry of route segments and school districts (lines and polygons must be simple, i.e., with no self-intersections).
 
@@ -230,7 +233,7 @@ Unfortunately, due to PostgreSQL limitations, for each relationship constraint, 
 
 
 License and Copyright
----------------------
+=====================
 
 postgis_omtg is released under a [MIT license](doc/LICENSE).
 
