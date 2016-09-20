@@ -232,6 +232,6 @@ Unfortunately, due to PostgreSQL limitations, for each relationship constraint, 
 License and Copyright
 ---------------------
 
-postgis_omtg is released under a https://github.com/lizardoluis/postgis_omtg/blob/master/doc/LICENSE[MIT license].
+postgis_omtg is released under a [MIT license](doc/LICENSE).
 
 Copyright (c) 2016 Luis Eduardo Oliveira Lizardo.
