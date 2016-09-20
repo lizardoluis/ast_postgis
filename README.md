@@ -227,3 +227,11 @@ The implementation of this schema that uses the `postgis_omtg` extension and con
 
 
 Unfortunately, due to PostgreSQL limitations, for each relationship constraint, two triggers must be created, one for `INSERT` and `UPDATE` statements on one table and another trigger for `DELETE` statements on the second table of the relationship. All triggers must be fired `AFTER` a `STATEMENT` execution.
+
+
+License and Copyright
+---------------------
+
+postgis_omtg is released under a https://github.com/lizardoluis/postgis_omtg/blob/master/doc/LICENSE[MIT license].
+
+Copyright (c) 2016 Luis Eduardo Oliveira Lizardo.
