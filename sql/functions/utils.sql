@@ -198,6 +198,209 @@ BEGIN
 EXCEPTION WHEN others THEN
     RETURN FALSE;
 END;
-$$
-STRICT
-LANGUAGE plpgsql IMMUTABLE;
+$$  LANGUAGE plpgsql;
+
+
+--
+-- This function parses a trigger and extracts its information.
+-- (@see https://github.com/decibel/cat_tools)
+--
+CREATE OR REPLACE  FUNCTION _omtg_triggerParser(
+  in trigger_oid oid,
+  out timing text,
+  out events text[],
+  out defer text,
+  out row_statement text,
+  out when_clause text,
+  out function_arguments text[],
+  out function_name text,
+  out table_name text
+) AS $$
+DECLARE
+  r_trigger pg_catalog.pg_trigger;
+  v_triggerdef text;
+  v_create_stanza text;
+  v_on_clause text;
+  v_execute_clause text;
+
+  v_work text;
+  v_array text[];
+BEGIN
+  -- Do this first to make sure trigger exists
+  v_triggerdef := pg_catalog.pg_get_triggerdef(trigger_oid, true);
+  SELECT * INTO STRICT r_trigger FROM pg_catalog.pg_trigger WHERE oid = trigger_oid;
+
+  v_create_stanza := format(
+    'CREATE %sTRIGGER %I '
+    , CASE WHEN r_trigger.tgconstraint=0 THEN '' ELSE 'CONSTRAINT ' END
+    , r_trigger.tgname
+  );
+  -- Strip CREATE [CONSTRAINT] TRIGGER ... off
+  v_work := replace( v_triggerdef, v_create_stanza, '' );
+
+  -- Get BEFORE | AFTER | INSTEAD OF
+  timing := split_part( v_work, ' ', 1 );
+  timing := timing || CASE timing WHEN 'INSTEAD' THEN ' OF' ELSE '' END;
+
+  -- Strip off timing clause
+  v_work := replace( v_work, timing || ' ', '' );
+
+  -- Get array of events (INSERT, UPDATE [OF column, column], DELETE, TRUNCATE)
+  v_on_clause := ' ON ' || r_trigger.tgrelid::regclass || ' ';
+  v_array := regexp_split_to_array( v_work, v_on_clause );
+  events := string_to_array( v_array[1], ' OR ' );
+
+  -- Get the name of the table that fires the trigger
+  table_name := r_trigger.tgrelid::regclass;
+
+  -- Get everything after ON table_name
+  v_work := v_array[2];
+--    RAISE DEBUG 'v_work "%"', v_work;
+
+  -- Strip off FROM referenced_table if we have it
+  IF r_trigger.tgconstrrelid<>0 THEN
+    v_work := replace(
+      v_work
+      , 'FROM ' || r_trigger.tgconstrrelid::regclass || ' '
+      , ''
+    );
+  END IF;
+--    RAISE DEBUG 'v_work "%"', v_work;
+
+  -- Get function name
+  function_name := r_trigger.tgfoid::regproc;
+
+  -- Get function arguments
+  v_execute_clause := ' EXECUTE PROCEDURE ' || r_trigger.tgfoid::regproc || E'\\(';
+  v_array := regexp_split_to_array( v_work, v_execute_clause );
+  function_arguments :=  array_remove(regexp_split_to_array(rtrim( v_array[2], ')' ), '\W+'), '');
+
+  -- Get everything prior to EXECUTE PROCEDURE ...
+  v_work := v_array[1];
+--    RAISE DEBUG 'v_work "%"', v_work;
+
+  row_statement := (regexp_matches( v_work, 'FOR EACH (ROW|STATEMENT)' ))[1];
+
+  -- Get [ NOT DEFERRABLE | [ DEFERRABLE ] { INITIALLY IMMEDIATE | INITIALLY DEFERRED } ]
+  v_array := regexp_split_to_array( v_work, 'FOR EACH (ROW|STATEMENT)' );
+--    RAISE DEBUG 'v_work = "%", v_array = "%"', v_work, v_array;
+  defer := rtrim(v_array[1]);
+
+  IF r_trigger.tgqual IS NOT NULL THEN
+    when_clause := rtrim(
+      (regexp_split_to_array( v_array[2], E' WHEN \\(' ))[2]
+      , ')'
+    );
+  END IF;
+
+  RETURN;
+END;
+$$  LANGUAGE plpgsql;
+
+--
+-- Convert array of text to lowercase
+--
+CREATE FUNCTION _omtg_arraylower(p_input text[]) RETURNS text[] AS $$
+DECLARE
+   el text;
+   r text[];
+BEGIN
+   FOREACH el IN ARRAY p_input LOOP
+      r := r || btrim(lower(el))::text;
+   END LOOP;
+   RETURN r;
+END;
+$$  LANGUAGE plpgsql;
+
+--
+-- This function adds the right trigger to a table with a geometry omtg column.
+--
+CREATE FUNCTION _omtg_validateTriggers() RETURNS event_trigger AS $$
+DECLARE
+   r record;
+   events text[];
+   function_arguments text[];
+   function_name text;
+   row_statement text;
+   timing text;
+   table_name text;
+   arc_domain text;
+BEGIN
+   FOR r IN SELECT * FROM pg_event_trigger_ddl_commands()
+   LOOP
+
+        -- verify that tags match
+      IF r.command_tag = 'CREATE TRIGGER' THEN
+
+         timing := (_omtg_triggerParser(r.objid)).timing;
+         function_name := (_omtg_triggerParser(r.objid)).function_name;
+         row_statement := (_omtg_triggerParser(r.objid)).row_statement;
+         function_arguments := (_omtg_triggerParser(r.objid)).function_arguments;
+         table_name := (_omtg_triggerParser(r.objid)).table_name;
+         events := _omtg_arraylower((_omtg_triggerParser(r.objid)).events);
+
+         -- trigger must be fired after an statement
+         IF timing != 'AFTER' or row_statement != 'STATEMENT'  THEN
+            RAISE EXCEPTION 'OMT-G error on trigger %.', r.object_identity
+               USING DETAIL = 'Trigger must be fired AFTER a STATEMENT.';
+         END IF;
+
+
+         CASE function_name
+            --
+            -- ARC ARC NETWORK
+            --
+            WHEN 'omtg_arcarcnetwork' THEN
+
+               -- number of arguments
+               IF array_length(function_arguments, 1) != 2 THEN
+                  RAISE EXCEPTION 'OMT-G error at ARC-ARC NETWORK constraint on trigger %.', r.object_identity
+                     USING DETAIL = 'Invalid parameters. Usage: omtg_arcarcnetwork(''arc_table'', ''arc_geometry'').';
+               END IF;
+
+               -- table that fired the trigger must be the same of the parameter
+               IF function_arguments[1] != table_name THEN
+                  RAISE EXCEPTION 'OMT-G error at ARC-ARC NETWORK constraint on trigger %.', r.object_identity
+                     USING DETAIL = 'Invalid parameters. Table associated with the trigger must be passed in the first parameter. Usage: omtg_arcarcnetwork(''arc_table'', ''arc_geometry'').';
+               END IF;
+
+               -- domain must be an arc
+               arc_domain := _omtg_getGeomColumnDomain(function_arguments[1], function_arguments[2]);
+               IF arc_domain != 'omtg_uniline' AND arc_domain != 'omtg_biline' THEN
+                  RAISE EXCEPTION 'OMT-G error at ARC-ARC NETWORK constraint on trigger %.', r.object_identity
+                     USING DETAIL = 'Table passed as parameter does not contain an arc geometry (omtg_uniline or omtg_biline).';
+               END IF;
+
+               -- trigger events must be insert, delete and update
+               IF not events @> '{insert}' or not events @> '{delete}' or not events @> '{update}' THEN
+                  RAISE EXCEPTION 'OMT-G error at ARC-ARC NETWORK constraint on trigger %.', r.object_identity
+                     USING DETAIL = 'ARC-ARC trigger events must be INSERT OR UPDATE OR DELETE.';
+               END IF;
+
+            -- WHEN 'omtg_arcnodenetwork' THEN
+            --
+            --    IF array_length(function_arguments, 1) != 4) THEN
+            --       RAISE EXCEPTION 'OMT-G error at ARC-NODE NETWORK constraint on trigger %.', r.object_identity
+            --          USING DETAIL = 'Invalid parameters.'; --TODO: show usage
+            --    END IF;
+
+               -- IF TG_NARGS != 4 OR node_domain != 'omtg_node' OR (arc_domain != 'omtg_uniline' AND arc_domain != 'omtg_biline' ) THEN
+               --    RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+               --       USING DETAIL = 'Invalid parameters.';
+               -- END IF;
+
+            --
+            -- WHEN 'omtg_topologicalrelationship' THEN
+            --
+            -- WHEN 'omtg_aggregation' THEN
+
+            ELSE RETURN;
+
+         END CASE;
+
+
+
+      END IF;
+   END LOOP;
+END;
+$$ LANGUAGE plpgsql;
