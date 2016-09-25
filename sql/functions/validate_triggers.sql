@@ -1,3 +1,25 @@
+--
+-- This function returns the name of the column given its type.
+--
+CREATE FUNCTION _omtg_createOnDeleteTriggerOnTable(tgrname text, tname text, procedure text) RETURNS void AS $$
+BEGIN
+   -- Check if trigger already exists
+   IF NOT _omtg_isTriggerEnable(tgrname) THEN
+      -- Suspend event trigger to avoid loop
+      EXECUTE 'ALTER EVENT TRIGGER omtg_validate_triggers DISABLE;';
+
+      EXECUTE 'CREATE TRIGGER '|| tgrname ||' AFTER DELETE ON '|| tname ||'
+          FOR EACH STATEMENT EXECUTE PROCEDURE '|| procedure ||';';
+
+      --RAISE NOTICE 'Trigger created AFTER DELETE on table % with % procedure.', tname, procedure;
+
+      -- Enable event trigger again
+      EXECUTE 'ALTER EVENT TRIGGER omtg_validate_triggers ENABLE;';
+   END IF;
+
+END;
+$$  LANGUAGE plpgsql;
+
 
 --
 -- This function adds the right trigger to a table with a geometry omtg column.
@@ -93,9 +115,6 @@ BEGIN
                      USING DETAIL = 'ARC-NODE trigger events must be INSERT OR UPDATE.';
                END IF;
 
-               -- Suspend event trigger to avoid loop
-               EXECUTE 'ALTER EVENT TRIGGER omtg_validate_triggers DISABLE;';
-
                IF table_name = function_arguments[1] THEN
                   -- create trigger on delete on node
                   on_tbl := function_arguments[3];
@@ -104,15 +123,11 @@ BEGIN
                   on_tbl := function_arguments[1];
                END IF;
 
-               EXECUTE 'CREATE TRIGGER '|| split_part(r.object_identity, ' ', 1) ||'_auto
-                  AFTER DELETE ON '|| on_tbl ||'
-                  FOR EACH STATEMENT
-                  EXECUTE PROCEDURE omtg_arcnodenetwork('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||');';
-
-               RAISE NOTICE 'Created trigger AFTER DELETE on table % with ARC-NODE procedure.', function_arguments[3];
-
-               -- Enable event trigger again
-               EXECUTE 'ALTER EVENT TRIGGER omtg_validate_triggers ENABLE;';
+               PERFORM _omtg_createOnDeleteTriggerOnTable(
+                  split_part(r.object_identity, ' ', 1) ||'_auto',
+                  on_tbl,
+                  'omtg_arcnodenetwork('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||')'
+               );
 
 
             WHEN 'omtg_topologicalrelationship' THEN
@@ -139,20 +154,13 @@ BEGIN
                      USING DETAIL = 'TOPOLOGICAL RELATIONSHIP trigger events must be INSERT OR UPDATE.';
                END IF;
 
-               -- Suspend event trigger to avoid loop
-               EXECUTE 'ALTER EVENT TRIGGER omtg_validate_triggers DISABLE;';
+               PERFORM _omtg_createOnDeleteTriggerOnTable(
+                  split_part(r.object_identity, ' ', 1) ||'_auto',
+                  function_arguments[3],
+                  'omtg_topologicalrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||')'
+               );
 
-               EXECUTE 'CREATE TRIGGER '|| split_part(r.object_identity, ' ', 1) ||'_auto
-                  AFTER DELETE ON '|| function_arguments[3] ||'
-                  FOR EACH STATEMENT
-                  EXECUTE PROCEDURE omtg_topologicalrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||');';
-
-               RAISE NOTICE 'Created trigger AFTER DELETE on table % with TOPOLOGICAL RELATIONSHIP procedure.', function_arguments[3];
-
-               -- Enable event trigger again
-               EXECUTE 'ALTER EVENT TRIGGER omtg_validate_triggers ENABLE;';
-
-            -- WHEN 'omtg_aggregation' THEN
+            WHEN 'omtg_aggregation' THEN
 
             ELSE RETURN;
 
