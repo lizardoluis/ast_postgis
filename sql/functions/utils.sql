@@ -1,8 +1,7 @@
 --
 -- This function checks if the geometry is simple.
 --
-CREATE FUNCTION _omtg_isSimpleGeometry(geom geometry)
-RETURNS BOOLEAN AS $$
+CREATE FUNCTION _omtg_isSimpleGeometry(geom geometry) RETURNS BOOLEAN AS $$
 BEGIN
    IF NOT ST_IsSimple(geom) THEN
       RAISE EXCEPTION 'OMT-G integrity constraint violation.'
@@ -96,7 +95,7 @@ $$  LANGUAGE plpgsql;
 
 
 --
--- This function returns the name of the column given its type.
+-- This function creates a domain trigger on a table
 --
 CREATE FUNCTION _omtg_createTriggerOnTable(tname text, omtgClass text, geomName text) RETURNS void AS $$
 DECLARE
@@ -191,7 +190,8 @@ $$  LANGUAGE plpgsql;
 -- This function checks if the argument text can be converted to a numeric type
 --
 CREATE OR REPLACE FUNCTION _omtg_isnumeric(text) RETURNS BOOLEAN AS $$
-DECLARE x NUMERIC;
+DECLARE
+   x NUMERIC;
 BEGIN
     x = $1::NUMERIC;
     RETURN TRUE;
@@ -226,74 +226,74 @@ DECLARE
   v_work text;
   v_array text[];
 BEGIN
-  -- Do this first to make sure trigger exists
-  v_triggerdef := pg_catalog.pg_get_triggerdef(trigger_oid, true);
-  SELECT * INTO STRICT r_trigger FROM pg_catalog.pg_trigger WHERE oid = trigger_oid;
+   -- Do this first to make sure trigger exists
+   v_triggerdef := pg_catalog.pg_get_triggerdef(trigger_oid, true);
+   SELECT * INTO STRICT r_trigger FROM pg_catalog.pg_trigger WHERE oid = trigger_oid;
 
-  v_create_stanza := format(
-    'CREATE %sTRIGGER %I '
-    , CASE WHEN r_trigger.tgconstraint=0 THEN '' ELSE 'CONSTRAINT ' END
-    , r_trigger.tgname
-  );
-  -- Strip CREATE [CONSTRAINT] TRIGGER ... off
-  v_work := replace( v_triggerdef, v_create_stanza, '' );
+   v_create_stanza := format(
+       'CREATE %sTRIGGER %I '
+       , CASE WHEN r_trigger.tgconstraint=0 THEN '' ELSE 'CONSTRAINT ' END
+       , r_trigger.tgname
+   );
+   -- Strip CREATE [CONSTRAINT] TRIGGER ... off
+   v_work := replace( v_triggerdef, v_create_stanza, '' );
 
-  -- Get BEFORE | AFTER | INSTEAD OF
-  timing := split_part( v_work, ' ', 1 );
-  timing := timing || CASE timing WHEN 'INSTEAD' THEN ' OF' ELSE '' END;
+   -- Get BEFORE | AFTER | INSTEAD OF
+   timing := split_part( v_work, ' ', 1 );
+   timing := timing || CASE timing WHEN 'INSTEAD' THEN ' OF' ELSE '' END;
 
-  -- Strip off timing clause
-  v_work := replace( v_work, timing || ' ', '' );
+   -- Strip off timing clause
+   v_work := replace( v_work, timing || ' ', '' );
 
-  -- Get array of events (INSERT, UPDATE [OF column, column], DELETE, TRUNCATE)
-  v_on_clause := ' ON ' || r_trigger.tgrelid::regclass || ' ';
-  v_array := regexp_split_to_array( v_work, v_on_clause );
-  events := string_to_array( v_array[1], ' OR ' );
+   -- Get array of events (INSERT, UPDATE [OF column, column], DELETE, TRUNCATE)
+   v_on_clause := ' ON ' || r_trigger.tgrelid::regclass || ' ';
+   v_array := regexp_split_to_array( v_work, v_on_clause );
+   events := string_to_array( v_array[1], ' OR ' );
 
-  -- Get the name of the table that fires the trigger
-  table_name := r_trigger.tgrelid::regclass;
+   -- Get the name of the table that fires the trigger
+   table_name := r_trigger.tgrelid::regclass;
 
-  -- Get everything after ON table_name
-  v_work := v_array[2];
---    RAISE DEBUG 'v_work "%"', v_work;
+   -- Get everything after ON table_name
+   v_work := v_array[2];
+   --    RAISE DEBUG 'v_work "%"', v_work;
 
-  -- Strip off FROM referenced_table if we have it
-  IF r_trigger.tgconstrrelid<>0 THEN
-    v_work := replace(
-      v_work
-      , 'FROM ' || r_trigger.tgconstrrelid::regclass || ' '
-      , ''
+   -- Strip off FROM referenced_table if we have it
+   IF r_trigger.tgconstrrelid<>0 THEN
+      v_work := replace(
+         v_work
+         , 'FROM ' || r_trigger.tgconstrrelid::regclass || ' '
+         , ''
     );
-  END IF;
---    RAISE DEBUG 'v_work "%"', v_work;
+   END IF;
+   --    RAISE DEBUG 'v_work "%"', v_work;
 
-  -- Get function name
-  function_name := r_trigger.tgfoid::regproc;
+   -- Get function name
+   function_name := r_trigger.tgfoid::regproc;
 
-  -- Get function arguments
-  v_execute_clause := ' EXECUTE PROCEDURE ' || r_trigger.tgfoid::regproc || E'\\(';
-  v_array := regexp_split_to_array( v_work, v_execute_clause );
-  function_arguments :=  array_remove(regexp_split_to_array(rtrim( v_array[2], ')' ), '\W+'), '');
+   -- Get function arguments
+   v_execute_clause := ' EXECUTE PROCEDURE ' || r_trigger.tgfoid::regproc || E'\\(';
+   v_array := regexp_split_to_array( v_work, v_execute_clause );
+   function_arguments :=  array_remove(regexp_split_to_array(rtrim( v_array[2], ')' ), '\W+'), '');
 
-  -- Get everything prior to EXECUTE PROCEDURE ...
-  v_work := v_array[1];
---    RAISE DEBUG 'v_work "%"', v_work;
+   -- Get everything prior to EXECUTE PROCEDURE ...
+   v_work := v_array[1];
+   --    RAISE DEBUG 'v_work "%"', v_work;
 
-  row_statement := (regexp_matches( v_work, 'FOR EACH (ROW|STATEMENT)' ))[1];
+   row_statement := (regexp_matches( v_work, 'FOR EACH (ROW|STATEMENT)' ))[1];
 
-  -- Get [ NOT DEFERRABLE | [ DEFERRABLE ] { INITIALLY IMMEDIATE | INITIALLY DEFERRED } ]
-  v_array := regexp_split_to_array( v_work, 'FOR EACH (ROW|STATEMENT)' );
---    RAISE DEBUG 'v_work = "%", v_array = "%"', v_work, v_array;
-  defer := rtrim(v_array[1]);
+   -- Get [ NOT DEFERRABLE | [ DEFERRABLE ] { INITIALLY IMMEDIATE | INITIALLY DEFERRED } ]
+   v_array := regexp_split_to_array( v_work, 'FOR EACH (ROW|STATEMENT)' );
+   --    RAISE DEBUG 'v_work = "%", v_array = "%"', v_work, v_array;
+   defer := rtrim(v_array[1]);
 
-  IF r_trigger.tgqual IS NOT NULL THEN
-    when_clause := rtrim(
-      (regexp_split_to_array( v_array[2], E' WHEN \\(' ))[2]
-      , ')'
-    );
-  END IF;
+   IF r_trigger.tgqual IS NOT NULL THEN
+      when_clause := rtrim(
+         (regexp_split_to_array( v_array[2], E' WHEN \\(' ))[2]
+         , ')'
+      );
+   END IF;
 
-  RETURN;
+   RETURN;
 END;
 $$  LANGUAGE plpgsql;
 
