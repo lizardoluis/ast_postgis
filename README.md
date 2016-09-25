@@ -61,7 +61,7 @@ The following table shows all the OMT-G domains implemented in the extension and
 <table>
    <thead>
       <th>OMT-G Class</th>
-      <th>Advanced spatial datatypes</th>
+      <th>Advanced spatial datatype</th>
       <th>PostGIS Type</th>
    </thead>
    <tr>
@@ -211,6 +211,12 @@ The implementation of this schema that uses the `postgis_omtg` extension and con
          AFTER INSERT OR UPDATE ON school_district
          FOR EACH STATEMENT
          EXECUTE PROCEDURE omtg_topologicalrelationship('school_district', 'geom', 'bus_stop', 'geom', 'contains');
+
+      --Bus_route_segment and Bus_stop arc-node network constraints:
+      CREATE TRIGGER busroute_insert_update_trigger
+         AFTER INSERT OR UPDATE ON bus_route_segment
+      	FOR EACH STATEMENT
+      	EXECUTE PROCEDURE omtg_arcnodenetwork('bus_route_segment', 'geom', 'bus_stop', 'geom');
 
 
 License and Copyright
