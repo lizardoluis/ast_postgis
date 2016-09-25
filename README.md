@@ -1,12 +1,12 @@
 Overview
 ========
 
-This PostgreSQL extension incorporates into PostgreSQL spatial integrity constraints defined in [OMT-G](http://homepages.dcc.ufmg.br/~clodoveu/DocuWiki/doku.php?id=omtg), an object-oriented data model for geographic applications.
+This PostgreSQL extension incorporates into PostgreSQL advanced spatial data types and also spatial integrity constraints, that are defined in [OMT-G](http://homepages.dcc.ufmg.br/~clodoveu/DocuWiki/doku.php?id=omtg), an object-oriented data model for geographic applications.
 
 Motivation
 ----------
 
-Although relational database management systems already offer several resources and features to store and manage spatial data, they still lack support for spatial integrity constraints. Those constraints differ from those used on relational data, because they do not make use of foreign keys to relate two tables. Usually the spatial relationships are made using the spatial characteristics of the data. For instance, 'Schools must be 500 meters away from gas stations'.
+Although relational database management systems already offer several resources and features to store and manage spatial data, the semantic gap between the conceptual models and their implementaion in RDBMS is still big. RDBMSs lack support for semantically rich spatial datatype and spatial integrity constraints. Those constraints differ from those used on relational data, because they do not make use of foreign keys to relate two tables. Usually the spatial relationships are made using the spatial characteristics of the data. For instance, 'Schools must be 500 meters away from gas stations'.
 
 
 Compatibility
@@ -61,7 +61,7 @@ The following table shows all the OMT-G domains implemented in the extension and
 <table>
    <thead>
       <th>OMT-G Class</th>
-      <th>Domain in extension</th>
+      <th>Advanced spatial datatypes</th>
       <th>PostGIS Type</th>
    </thead>
    <tr>
@@ -211,25 +211,6 @@ The implementation of this schema that uses the `postgis_omtg` extension and con
          AFTER INSERT OR UPDATE ON school_district
          FOR EACH STATEMENT
          EXECUTE PROCEDURE omtg_topologicalrelationship('school_district', 'geom', 'bus_stop', 'geom', 'contains');
-
-      CREATE TRIGGER bus_stop_afterdelete_trigger
-         AFTER DELETE ON bus_stop
-         FOR EACH STATEMENT
-         EXECUTE PROCEDURE omtg_topologicalrelationship('school_district', 'geom', 'bus_stop', 'geom', 'contains');
-
-      --Bus_route_segment and Bus_stop arc-node network constraints:
-      CREATE TRIGGER busroute_insert_update_trigger
-         AFTER INSERT OR UPDATE ON bus_route_segment
-      	FOR EACH STATEMENT
-      	EXECUTE PROCEDURE omtg_arcnodenetwork('bus_route_segment', 'geom', 'bus_stop', 'geom');
-
-      CREATE TRIGGER busstop_delete_trigger
-         AFTER DELETE ON bus_stop
-      	FOR EACH STATEMENT
-      	EXECUTE PROCEDURE omtg_arcnodenetwork('bus_route_segment', 'geom', 'bus_stop', 'geom');
-
-
-Unfortunately, due to PostgreSQL limitations, for each relationship constraint, two triggers must be created, one for `INSERT` and `UPDATE` statements on one table and another trigger for `DELETE` statements on the second table of the relationship. All triggers must be fired `AFTER` a `STATEMENT` execution.
 
 
 License and Copyright

@@ -36,20 +36,10 @@ CREATE TRIGGER school_district_contains_trigger
    FOR EACH STATEMENT
    EXECUTE PROCEDURE omtg_topologicalrelationship('school_district', 'geom', 'bus_stop', 'geom', 'contains');
 
-CREATE TRIGGER bus_stop_afterdelete_trigger
-   AFTER DELETE ON bus_stop
-   FOR EACH STATEMENT
-   EXECUTE PROCEDURE omtg_topologicalrelationship('school_district', 'geom', 'bus_stop', 'geom', 'contains');
-
 --
 -- Bus_route_segment and Bus_stop arc-node network constraints
 --
 CREATE TRIGGER busroute_insert_update_trigger
    AFTER INSERT OR UPDATE ON bus_route_segment
-	FOR EACH STATEMENT
-	EXECUTE PROCEDURE omtg_arcnodenetwork('bus_route_segment', 'geom', 'bus_stop', 'geom');
-
-CREATE TRIGGER busstop_delete_trigger
-   AFTER DELETE ON bus_stop
 	FOR EACH STATEMENT
 	EXECUTE PROCEDURE omtg_arcnodenetwork('bus_route_segment', 'geom', 'bus_stop', 'geom');
