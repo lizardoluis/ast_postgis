@@ -162,11 +162,25 @@ BEGIN
 
             WHEN 'omtg_aggregation' THEN
 
+               -- number of arguments
+               IF array_length(function_arguments, 1) != 4 OR NOT _omtg_isOMTGDomain(function_arguments[1], function_arguments[2]) OR NOT _omtg_isOMTGDomain(function_arguments[3], function_arguments[4]) THEN
+                  RAISE EXCEPTION 'OMT-G error at AGGREGATION constraint, on trigger %.', r.object_identity
+                     USING DETAIL = 'Invalid procedure parameters. Usage: omtg_aggregation(''part_tbl'', ''part_geom'', ''whole_tbl'', ''whole_geom'').';
+               END IF;
+
+               IF table_name != function_arguments[1] THEN
+                  RAISE EXCEPTION 'OMT-G error at AGGREGATION constraint, on trigger %.', r.object_identity
+                     USING DETAIL = 'Part table that fires the trigger must be passed as the first procedure parameter.';
+               END IF;
+
+               IF (not events @> '{insert}' or not events @> '{update}' or not events @> '{delete}') THEN
+                  RAISE EXCEPTION 'OMT-G error at AGGREGATION constraint, on trigger %.', r.object_identity
+                     USING DETAIL = 'AGGREGATION trigger events must be INSERT OR UPDATE OR DELETE.';
+               END IF;
+
             ELSE RETURN;
 
          END CASE;
-
-
 
       END IF;
    END LOOP;
