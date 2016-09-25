@@ -1,6 +1,6 @@
 # OMT-G support for PostgreSQL
 comment = 'A OMT-G support on top of PostgreSQL and PostGIS'
-default_version = '0.1.0'
+default_version = '1.0.0'
 module_pathname = '$libdir/postgis_omtg'
 relocatable = true
 requires = 'postgis, postgis_topology'
