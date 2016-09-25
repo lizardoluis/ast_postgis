@@ -61,7 +61,7 @@ The following table shows all the OMT-G domains implemented in the extension and
 <table>
    <thead>
       <th>OMT-G Class</th>
-      <th>Advanced spatial datatypes</th>
+      <th>Advanced spatial datatype</th>
       <th>PostGIS Type</th>
    </thead>
    <tr>
