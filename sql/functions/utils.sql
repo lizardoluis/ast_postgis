@@ -327,3 +327,25 @@ EXCEPTION
       RETURN FALSE;
 END;
 $$  LANGUAGE plpgsql;
+
+
+
+--
+-- This function returns the primary key column name.
+-- Returns only the first column of composite keys.
+--
+CREATE FUNCTION _omtg_getPrimaryKeyColumn(tname text) RETURNS text AS $$
+DECLARE
+   cname text;
+BEGIN
+
+   EXECUTE 'SELECT a.attname
+   FROM   pg_index i
+   JOIN   pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
+   WHERE  i.indrelid = '''|| tname ||'''::regclass
+   AND    i.indisprimary;' into cname;
+
+   RETURN cname;
+
+END;
+$$  LANGUAGE plpgsql;
