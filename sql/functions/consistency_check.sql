@@ -9,7 +9,7 @@ declare
    res boolean;
 begin
 
-   EXECUTE 'INSERT into omtg_violation_log (time, type, description) (
+   EXECUTE 'insert into omtg_violation_log (time, type, description) (
          select now(),
                ''Near buffer violation'',
                ''Table ´'|| b_tbl ||'´ tuple with primary key ´''|| b.'|| pkColumn ||' ||''´ is outside the buffer distance of ´'|| dist ||'´ from table ´'|| a_tbl ||'´.''
@@ -20,7 +20,7 @@ begin
                from '|| a_tbl ||' a, '|| b_tbl ||' b
                where st_dwithin(a.'|| a_geom ||', b.'|| b_geom ||', '|| dist ||')
             )
-         ) RETURNING true;' into res;
+         ) returning true;' into res;
 
          if res then return false;
          else return true;
@@ -39,7 +39,7 @@ declare
    res boolean;
 begin
 
-   EXECUTE 'INSERT into omtg_violation_log (time, type, description) (
+   EXECUTE 'insert into omtg_violation_log (time, type, description) (
          select now(),
                ''Topological relationship violation'',
                ''Topological relationship ('|| relation ||') between ´'|| a_tbl ||'´ and ´'|| b_tbl ||'´ is violated by the tuple of ´'|| a_tbl ||'´ with primary key ´''|| a.'|| pkColumn ||' ||''´.''
@@ -50,7 +50,7 @@ begin
             from '|| a_tbl ||' a, '|| b_tbl ||' b
             where st_'|| relation ||'(a.'|| a_geom ||', b.'|| b_geom ||')
          )
-      ) RETURNING true;' into res;
+      ) returning true;' into res;
 
       if res then return false;
       else return true;
