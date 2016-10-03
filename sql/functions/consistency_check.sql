@@ -9,7 +9,7 @@ declare
    res boolean;
 begin
 
-   EXECUTE 'insert into omtg_violation_log (time, type, description) (
+   execute 'insert into omtg_violation_log (time, type, description) (
          select now(),
                ''Near buffer violation'',
                ''Table ´'|| b_tbl ||'´ tuple with primary key ´''|| b.'|| pkColumn ||' ||''´ is outside the buffer distance of ´'|| dist ||'´ from table ´'|| a_tbl ||'´.''
@@ -39,7 +39,7 @@ declare
    res boolean;
 begin
 
-   EXECUTE 'insert into omtg_violation_log (time, type, description) (
+   execute 'insert into omtg_violation_log (time, type, description) (
          select now(),
                ''Topological relationship violation'',
                ''Topological relationship ('|| relation ||') between ´'|| a_tbl ||'´ and ´'|| b_tbl ||'´ is violated by the tuple of ´'|| a_tbl ||'´ with primary key ´''|| a.'|| pkColumn ||' ||''´.''
@@ -53,6 +53,48 @@ begin
       ) returning true;' into res;
 
       if res then return false;
+      else return true;
+      end if;
+end;
+$$  language plpgsql;
+
+
+--
+-- This function checks if the arc-node network is violated.
+--
+create function omtg_isNetworkValid(arc_tbl text, arc_geom text, node_tbl text, node_geom text)
+   returns boolean as $$
+declare
+   pkColumn text := _omtg_getPrimaryKeyColumn(arc_tbl);
+   res1 boolean;
+   res2 boolean;
+begin
+
+   execute 'insert into omtg_violation_log (time, type, description) (
+         select now(),
+               ''Arc-Node Network violation'',
+               ''Start point of arc with primary key ´''|| '|| pkColumn ||' ||''´ does not intersect any node.''
+         from '|| arc_tbl ||'
+         where '|| pkColumn ||' not in (
+         	select distinct a.'|| pkColumn ||'
+         	from '|| arc_tbl ||' a, '|| node_tbl ||' n
+         	where st_intersects(st_startpoint(a.'|| arc_geom ||'), n.'|| node_geom ||')
+         )
+      ) returning true;' into res1;
+
+   execute 'insert into omtg_violation_log (time, type, description) (
+         select now(),
+               ''Arc-Node Network violation'',
+               ''End point of arc with primary key ´''|| '|| pkColumn ||' ||''´ does not intersect any node.''
+         from '|| arc_tbl ||'
+         where '|| pkColumn ||' not in (
+         	select distinct a.'|| pkColumn ||'
+         	from '|| arc_tbl ||' a, '|| node_tbl ||' n
+         	where st_intersects(st_endpoint(a.'|| arc_geom ||'), n.'|| node_geom ||')
+         )
+      ) returning true;' into res2;
+
+      if res1 or res2 then return false;
       else return true;
       end if;
 end;
