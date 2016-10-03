@@ -9,6 +9,17 @@ declare
    res boolean;
 begin
 
+   if pkColumn = '' then
+      raise exception 'OMTG_isTopologicalRelationshipValid function error.'
+         using detail = 'Table passed as first parameter does not have primary key and without it is not possible to validate the topological relationship.';
+      return false;
+   end if;
+
+   if not _omtg_isOMTGDomain(a_tbl, a_geom) or not _omtg_isOMTGDomain(b_tbl, b_geom) then
+      raise exception 'OMTG_isTopologicalRelationshipValid error! Invalid parameters.'
+         using detail = 'Usage: SELECT omtg_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real);';
+   end if;
+   
    execute 'insert into omtg_violation_log (time, type, description) (
       select now(),
             ''Near buffer violation'',
@@ -38,6 +49,16 @@ declare
    pkColumn text := _omtg_getPrimaryKeyColumn(a_tbl);
    res boolean;
 begin
+
+   if pkColumn = '' then
+      raise exception 'OMTG_isTopologicalRelationshipValid function error.'
+         using detail = 'Table passed as first parameter does not have primary key and without it is not possible to validate the topological relationship.';
+   end if;
+
+   if not _omtg_isOMTGDomain(a_tbl, a_geom) or not _omtg_isOMTGDomain(b_tbl, b_geom) then
+      raise exception 'OMTG_isTopologicalRelationshipValid error! Invalid parameters.'
+         using detail = 'Usage: SELECT omtg_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation _omtg_topologicalrelationship);';
+   end if;
 
    execute 'insert into omtg_violation_log (time, type, description) (
          select now(),
@@ -69,6 +90,16 @@ declare
    res1 boolean;
    res2 boolean;
 begin
+
+   if pkColumn = '' then
+      raise exception 'OMTG_isNetworkValid function error.'
+         using detail = 'ARC table does not have primary key and without it is not possible to validate the network.';
+   end if;
+
+   if not _omtg_isOMTGDomain(arc_tbl, arc_geom) then
+      raise exception 'OMTG_isNetworkValid error! Invalid parameters.'
+         using detail = 'Usage: SELECT omtg_isNetworkValid(arc_tbl text, arc_geom text, node_tbl text, node_geom text);';
+   end if;
 
    execute 'insert into omtg_violation_log (time, type, description) (
          select now(),
@@ -111,6 +142,16 @@ declare
    res boolean;
 begin
 
+   if pkColumn = '' then
+      raise exception 'OMTG_isNetworkValid function error.'
+         using detail = 'ARC table does not have primary key and without it is not possible to validate the network.';
+   end if;
+
+   if not _omtg_isOMTGDomain(arc_tbl, arc_geom) then
+      raise exception 'OMTG_isNetworkValid error! Invalid parameters.'
+         using detail = 'Usage: SELECT omtg_isNetworkValid(arc_tbl text, arc_geom text);';
+   end if;
+
    execute 'insert into omtg_violation_log (time, type, description) (
          select now(),
                ''Arc-Arc Network violation'',
@@ -131,7 +172,6 @@ end;
 $$  language plpgsql;
 
 
-
 --
 -- This function checks if the spatial aggregation is valid.
 --
@@ -143,6 +183,16 @@ declare
    res2 boolean;
    res3 boolean;
 begin
+
+   if pkColumn = '' then
+      raise exception 'OMTG_isSpatialAggregationValid function error.'
+         using detail = 'PART table does not have primary key and without it is not possible to validate the spatial aggregation.';
+   end if;
+
+   if not _omtg_isOMTGDomain(part_tbl, part_geom) or not _omtg_isomtgdomain(whole_tbl, whole_geom) then
+      raise exception 'OMTG_isSpatialAggregationValid error! Invalid parameters.'
+         using detail = 'Usage: SELECT omtg_isSpatialAggregationValid(part_tbl text, part_geom text, whole_tbl text, whole_geom text);';
+   end if;
 
    -- 1. Pi intersection W = Pi, for all i such as 0 <= i <= n
    execute 'insert into omtg_violation_log (time, type, description) (
