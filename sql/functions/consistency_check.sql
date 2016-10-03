@@ -2,7 +2,7 @@
 -- This function checks if all the elements of b_tbl is within the buffer
 -- distance from the elements of a_tbl.
 --
-create function omtg_isNearValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real)
+create function omtg_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real)
    returns boolean as $$
 declare
    pkColumn text := _omtg_getPrimaryKeyColumn(b_tbl);
