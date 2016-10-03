@@ -99,3 +99,34 @@ begin
       end if;
 end;
 $$  language plpgsql;
+
+
+
+--
+-- This function checks if the arc-arc network is violated.
+--
+create function omtg_isNetworkValid(arc_tbl text, arc_geom text)
+   returns boolean as $$
+declare
+   pkColumn text := _omtg_getPrimaryKeyColumn(arc_tbl);
+   res boolean;
+begin
+
+   execute 'insert into omtg_violation_log (time, type, description) (
+         select now(),
+               ''Arc-Arc Network violation'',
+               ''Arcs ´''|| a.'|| pkColumn ||' ||''´ and ´''|| b.'|| pkColumn ||' ||''´ intersect each other on middle points.''
+               from '|| arc_tbl ||' as a, '|| arc_tbl ||' as b
+            where a.ctid < b.ctid
+            	and st_intersects(a.'|| arc_geom ||', b.'|| arc_geom ||')
+            	and not st_intersects(st_startpoint(a.'|| arc_geom ||'), st_startpoint(b.'|| arc_geom ||'))
+            	and not st_intersects(st_startpoint(a.'|| arc_geom ||'), st_endpoint(b.'|| arc_geom ||'))
+            	and not st_intersects(st_endpoint(a.'|| arc_geom ||'), st_startpoint(b.'|| arc_geom ||'))
+            	and not st_intersects(st_endpoint(a.'|| arc_geom ||'), st_endpoint(b.'|| arc_geom ||'))
+      ) returning true;' into res;
+
+      if res then return false;
+      else return true;
+      end if;
+end;
+$$  language plpgsql;
