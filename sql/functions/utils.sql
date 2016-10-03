@@ -345,7 +345,11 @@ BEGIN
    WHERE  i.indrelid = '''|| tname ||'''::regclass
    AND    i.indisprimary;' into cname;
 
-   RETURN cname;
+   IF char_length(cname) > 0 THEN
+      return cname;
+   else
+      return '';
+   END IF;
 
 END;
 $$  LANGUAGE plpgsql;
