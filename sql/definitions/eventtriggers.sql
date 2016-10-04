@@ -12,4 +12,4 @@ CREATE EVENT TRIGGER omtg_add_class_constraint_trigger
 CREATE EVENT TRIGGER omtg_validate_triggers
    ON ddl_command_end
    WHEN tag IN ('create trigger')
-   EXECUTE PROCEDURE _omtg_validateTriggers();
+   EXECUTE PROCEDURE _omtg_validateTrigger();

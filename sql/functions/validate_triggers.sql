@@ -24,7 +24,7 @@ $$  LANGUAGE plpgsql;
 --
 -- This function adds the right trigger to a table with a geometry omtg column.
 --
-CREATE FUNCTION _omtg_validateTriggers() RETURNS event_trigger AS $$
+CREATE FUNCTION _omtg_validateTrigger() RETURNS event_trigger AS $$
 DECLARE
    r record;
    events text[];
