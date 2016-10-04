@@ -19,7 +19,7 @@ begin
       raise exception 'OMTG_isTopologicalRelationshipValid error! Invalid parameters.'
          using detail = 'Usage: SELECT omtg_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real);';
    end if;
-   
+
    execute 'insert into omtg_violation_log (time, type, description) (
       select now(),
             ''Near buffer violation'',
@@ -43,7 +43,7 @@ $$  language plpgsql;
 --
 -- This function checks if the topolotical relationship is valid.
 --
-create function omtg_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation _omtg_topologicalrelationship)
+create function omtg_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation text)
    returns boolean as $$
 declare
    pkColumn text := _omtg_getPrimaryKeyColumn(a_tbl);
@@ -55,9 +55,9 @@ begin
          using detail = 'Table passed as first parameter does not have primary key and without it is not possible to validate the topological relationship.';
    end if;
 
-   if not _omtg_isOMTGDomain(a_tbl, a_geom) or not _omtg_isOMTGDomain(b_tbl, b_geom) then
+   if not _omtg_isOMTGDomain(a_tbl, a_geom) or not _omtg_isOMTGDomain(b_tbl, b_geom) or not _omtg_isTopologicalRelationship(relation)  then
       raise exception 'OMTG_isTopologicalRelationshipValid error! Invalid parameters.'
-         using detail = 'Usage: SELECT omtg_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation _omtg_topologicalrelationship);';
+         using detail = 'Usage: SELECT omtg_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation text);';
    end if;
 
    execute 'insert into omtg_violation_log (time, type, description) (

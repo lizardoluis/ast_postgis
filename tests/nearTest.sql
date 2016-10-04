@@ -1,6 +1,3 @@
-drop table tablea;
-drop table tableb;
-
 create table tablea (
    id integer primary key,
    geom omtg_point
@@ -11,12 +8,6 @@ create table tableb (
    geom omtg_point
 );
 
-create table tablec (
-   id integer primary key,
-   geom omtg_line
-);
-
-
 delete from tableb;
 INSERT INTO tableb(id, geom) VALUES
    (10, ST_GeomFromText('POINT(0 0)')),
@@ -24,13 +15,12 @@ INSERT INTO tableb(id, geom) VALUES
 
 
 delete from tablea;
-
 INSERT INTO tablea(id, geom) VALUES
-   (1, ST_GeomFromText('POINT(4 0)')),
-	(2, ST_GeomFromText('POINT(4 4)')),
-	(3, ST_GeomFromText('POINT(6 0)')),
-	(4, ST_GeomFromText('POINT(9 0)')),
-	(5, ST_GeomFromText('POINT(1 1)'));
+   (1, ST_GeomFromText('POINT(1 0)')),
+	(2, ST_GeomFromText('POINT(2 0)')),
+	(3, ST_GeomFromText('POINT(3 0)')),
+	(4, ST_GeomFromText('POINT(4 0)')),
+	(5, ST_GeomFromText('POINT(5 0)'));
 
 delete from tablec;
    INSERT INTO tablec(id, geom)
