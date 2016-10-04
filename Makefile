@@ -14,16 +14,15 @@ PG91         = $(shell $(PG_CONFIG) --version | grep -qE " 8\\.| 9\\.0" && echo 
 ifeq ($(PG91),yes)
 all: sql/$(EXTENSION)--$(EXTVERSION).sql
 
-sql/$(EXTENSION)--$(EXTVERSION).sql: $(strip sql/definitions/types.sql \
-		sql/functions/utils.sql \
-		sql/functions/domains_triggers.sql \
-		sql/functions/validate_triggers.sql \
-		sql/functions/relationship_triggers.sql \
-		sql/definitions/eventtriggers.sql \
-		sql/definitions/tables.sql \
-		sql/definitions/types.sql \
-		sql/definitions/domains.sql \
-		sql/functions/consistency_check.sql \
+sql/$(EXTENSION)--$(EXTVERSION).sql: $(strip sql/tables.sql \
+		sql/types.sql \
+		sql/type_functions.sql \
+		sql/utils.sql \
+		sql/domain_functions.sql \
+		sql/domains.sql \
+		sql/relationship_triggers.sql \
+		sql/event_triggers.sql \
+		sql/consistency_functions.sql \
 	)
 	cat $^ > $@
 

@@ -40,6 +40,7 @@ end;
 $$  language plpgsql;
 
 
+
 --
 -- This function checks if the topolotical relationship is valid.
 --
@@ -78,6 +79,7 @@ begin
    end if;
 end;
 $$  language plpgsql;
+
 
 
 --
@@ -132,6 +134,7 @@ end;
 $$  language plpgsql;
 
 
+
 --
 -- This function checks if the arc-arc network is valid.
 --
@@ -170,6 +173,7 @@ begin
    end if;
 end;
 $$  language plpgsql;
+
 
 
 --

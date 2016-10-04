@@ -6,6 +6,8 @@ CREATE EVENT TRIGGER omtg_add_class_constraint_trigger
    WHEN tag IN ('create table', 'alter table')
    EXECUTE PROCEDURE _omtg_addClassConstraint();
 
+
+
 --
 -- Event trigger to validate user triggers
 --
