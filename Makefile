@@ -26,7 +26,7 @@ sql/$(EXTENSION)--$(EXTVERSION).sql: $(strip sql/tables.sql \
 	)
 	cat $^ > $@
 
-DATA = $(wildcard sql/*--*.sql) sql/$(EXTENSION)--$(EXTVERSION).sql
+DATA 			= $(wildcard sql/*--*.sql) sql/$(EXTENSION)--$(EXTVERSION).sql
 EXTRA_CLEAN = sql/$(EXTENSION)--$(EXTVERSION).sql
 endif
 
