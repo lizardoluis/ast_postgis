@@ -3,7 +3,7 @@ drop table if exists cities;
 create table cities (
     id SERIAL,
     name VARCHAR(20),
-    geom OMTG_POLYGON
+    geom ast_POLYGON
 );
 
 INSERT INTO cities(name, geom)

@@ -1,4 +1,4 @@
-EXTENSION    	= postgis_omtg
+EXTENSION    	= ast_postgis
 EXTVERSION   	= $(shell grep default_version $(EXTENSION).control | \
                sed -e "s/default_version[[:space:]]*=[[:space:]]*'\([^']*\)'/\1/")
 DOCS 				= $(wildcard doc/*)

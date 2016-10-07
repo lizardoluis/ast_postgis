@@ -1,13 +1,13 @@
 drop table tablea;
 create table tablea (
    id integer primary key,
-   geom omtg_polygon
+   geom ast_polygon
 );
 
 drop table tableb;
 create table tableb (
    id integer primary key,
-   geom omtg_point
+   geom ast_point
 );
 
 delete from tablea;

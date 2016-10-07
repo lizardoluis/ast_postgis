@@ -14,5 +14,5 @@ Then install:
 
 After you've built and installed the artifacts, fire up `psql`:
 
-      postgres=# CREATE EXTENSION postgis_omtg;
+      postgres=# CREATE EXTENSION ast_postgis;
       CREATE EXTENSION

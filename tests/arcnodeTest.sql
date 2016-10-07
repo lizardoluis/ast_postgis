@@ -1,20 +1,20 @@
 drop table node;
 CREATE TABLE node (
 	id serial primary key,
-	geom omtg_node
+	geom ast_node
 );
 
 drop table arc;
 CREATE TABLE arc (
 	id serial primary key,
-	geom omtg_uniline
+	geom ast_uniline
    spatial_constraint(network, node(geom))
 );
 
 CREATE TRIGGER check_arcnode_trigger
 AFTER INSERT OR UPDATE OR DELETE ON arc
 	FOR EACH STATEMENT
-	EXECUTE PROCEDURE omtg_arcnodenetwork('arc', 'geom', 'node', 'geom');
+	EXECUTE PROCEDURE ast_arcnodenetwork('arc', 'geom', 'node', 'geom');
 
 INSERT INTO node(geom)
 	VALUES (ST_GeomFromText('POINT(0 1)')),

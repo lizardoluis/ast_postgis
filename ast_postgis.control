@@ -1,0 +1,6 @@
+# Advanced spatial data types and spatial integrity constraints for PostGIS.
+comment = 'Advanced spatial data types and spatial integrity constraints for PostGIS.'
+default_version = '1.0.0'
+module_pathname = '$libdir/ast_postgis'
+relocatable = true
+requires = 'postgis, postgis_topology'

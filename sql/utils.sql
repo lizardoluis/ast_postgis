@@ -1,7 +1,7 @@
 --
 -- This function checks if the geometry is simple.
 --
-CREATE FUNCTION _omtg_isSimpleGeometry(geom geometry) RETURNS BOOLEAN AS $$
+CREATE FUNCTION _ast_isSimpleGeometry(geom geometry) RETURNS BOOLEAN AS $$
 BEGIN
    IF NOT ST_IsSimple(geom) THEN
       RAISE EXCEPTION 'OMT-G integrity constraint violation.'
@@ -17,7 +17,7 @@ $$  LANGUAGE plpgsql;
 --
 -- This function checks if the geometry is a triangle.
 --
-CREATE FUNCTION _omtg_isTriangle(geom geometry) RETURNS BOOLEAN AS $$
+CREATE FUNCTION _ast_isTriangle(geom geometry) RETURNS BOOLEAN AS $$
 BEGIN
    IF ST_NPoints(geom) != 4 THEN
       RAISE EXCEPTION 'OMT-G integrity constraint violation.'
@@ -33,7 +33,7 @@ $$  LANGUAGE plpgsql;
 --
 -- This function returns the name of the column given its type.
 --
-CREATE FUNCTION _omtg_getGeomColumnName(tbl regclass, omtgClass text) RETURNS TEXT AS $$
+CREATE FUNCTION _ast_getGeomColumnName(tbl regclass, omtgClass text) RETURNS TEXT AS $$
 DECLARE
    geoms text array;
 BEGIN
@@ -45,10 +45,10 @@ BEGIN
    );
 
    IF array_length(geoms, 1) < 1 THEN
-      RAISE EXCEPTION 'OMT-G extension error at _omtg_getGeomColumnName'
+      RAISE EXCEPTION 'OMT-G extension error at _ast_getGeomColumnName'
          USING DETAIL = 'Table has no column with the given OMT-G domain.';
    ELSIF array_length(geoms, 1) > 1 THEN
-      RAISE EXCEPTION 'OMT-G extension error at _omtg_getGeomColumnName'
+      RAISE EXCEPTION 'OMT-G extension error at _ast_getGeomColumnName'
          USING DETAIL = 'Table has multiple columns with the given OMT-G domain.';
    END IF;
 
@@ -61,7 +61,7 @@ $$  LANGUAGE plpgsql;
 --
 -- This function checks if the geometry is a triangle.
 --
-CREATE FUNCTION _omtg_isTriggerEnable(tgrname TEXT) RETURNS BOOLEAN AS $$
+CREATE FUNCTION _ast_isTriggerEnable(tgrname TEXT) RETURNS BOOLEAN AS $$
 BEGIN
    IF EXISTS (SELECT  tgenabled
       FROM pg_trigger WHERE tgname=tgrname AND tgenabled != 'D') THEN
@@ -76,7 +76,7 @@ $$  LANGUAGE plpgsql;
 --
 -- This function checks if the argument text can be converted to a numeric type
 --
-CREATE OR REPLACE FUNCTION _omtg_isnumeric(text) RETURNS BOOLEAN AS $$
+CREATE OR REPLACE FUNCTION _ast_isnumeric(text) RETURNS BOOLEAN AS $$
 DECLARE
    x NUMERIC;
 BEGIN
@@ -93,7 +93,7 @@ $$  LANGUAGE plpgsql;
 -- This function parses a trigger and extracts its information.
 -- (Adapted from the work done by Jim Nasby, @see https://github.com/decibel/cat_tools)
 --
-CREATE OR REPLACE  FUNCTION _omtg_triggerParser(
+CREATE OR REPLACE  FUNCTION _ast_triggerParser(
   in trigger_oid oid,
   out timing text,
   out events text[],
@@ -190,7 +190,7 @@ $$  LANGUAGE plpgsql;
 --
 -- Convert array of text to lowercase
 --
-CREATE FUNCTION _omtg_arraylower(p_input text[]) RETURNS text[] AS $$
+CREATE FUNCTION _ast_arraylower(p_input text[]) RETURNS text[] AS $$
 DECLARE
    el text;
    r text[];
@@ -208,7 +208,7 @@ $$  LANGUAGE plpgsql;
 -- This function returns the primary key column name.
 -- Returns only the first column of composite keys.
 --
-CREATE FUNCTION _omtg_getPrimaryKeyColumn(tname text) RETURNS text AS $$
+CREATE FUNCTION _ast_getPrimaryKeyColumn(tname text) RETURNS text AS $$
 DECLARE
    cname text;
 BEGIN

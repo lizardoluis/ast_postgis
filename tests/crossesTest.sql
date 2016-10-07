@@ -3,13 +3,13 @@ drop table tableb;
 
 create table tablea (
    id integer primary key,
-   geom omtg_line
+   geom ast_line
 );
 
 drop table tableb;
 create table tableb (
    id integer primary key,
-   geom omtg_polygon
+   geom ast_polygon
 );
 
 delete from tablea;
@@ -27,7 +27,7 @@ INSERT INTO tableb(id, geom) VALUES
    CREATE TRIGGER crosses_trigger
    AFTER INSERT OR UPDATE ON tablea
    	FOR EACH STATEMENT
-   	EXECUTE PROCEDURE omtg_topologicalrelationship('tablea', 'geom', 'tableb', 'geom', 'crosses');
+   	EXECUTE PROCEDURE ast_topologicalrelationship('tablea', 'geom', 'tableb', 'geom', 'crosses');
 
 
    select not exists(

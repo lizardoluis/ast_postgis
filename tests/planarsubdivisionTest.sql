@@ -3,7 +3,7 @@ drop table if exists cities;
 create table cities (
     id SERIAL,
     name VARCHAR(20),
-    geom OMTG_PLANARSUBDIVISION
+    geom ast_PLANARSUBDIVISION
 );
 
 -- Test 1 - No gaps

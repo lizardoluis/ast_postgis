@@ -1,7 +1,7 @@
 CREATE TABLE Curvas (
   id SERIAL,
   name VARCHAR(50),
-  geom OMTG_ISOLINE,
+  geom ast_ISOLINE,
   CONSTRAINT pk_Temperature PRIMARY KEY (id)
 );
 

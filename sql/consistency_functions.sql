@@ -2,25 +2,25 @@
 -- This function checks if all the elements of b_tbl is within the buffer
 -- distance from the elements of a_tbl.
 --
-create function omtg_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real)
+create function ast_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real)
    returns boolean as $$
 declare
-   pkColumn text := _omtg_getPrimaryKeyColumn(b_tbl);
+   pkColumn text := _ast_getPrimaryKeyColumn(b_tbl);
    res boolean;
 begin
 
    if pkColumn = '' then
-      raise exception 'OMTG_isTopologicalRelationshipValid function error.'
+      raise exception 'AST_isTopologicalRelationshipValid function error.'
          using detail = 'Table passed as first parameter does not have primary key and without it is not possible to validate the topological relationship.';
       return false;
    end if;
 
-   if not _omtg_isOMTGDomain(a_tbl, a_geom) or not _omtg_isOMTGDomain(b_tbl, b_geom) then
-      raise exception 'OMTG_isTopologicalRelationshipValid error! Invalid parameters.'
-         using detail = 'Usage: SELECT omtg_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real);';
+   if not _ast_isOMTGDomain(a_tbl, a_geom) or not _ast_isOMTGDomain(b_tbl, b_geom) then
+      raise exception 'AST_isTopologicalRelationshipValid error! Invalid parameters.'
+         using detail = 'Usage: SELECT ast_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real);';
    end if;
 
-   execute 'insert into omtg_violation_log (time, type, description) (
+   execute 'insert into ast_violation_log (time, type, description) (
       select now(),
             ''Near buffer violation'',
             ''Table ´'|| b_tbl ||'´ tuple with primary key ´''|| b.'|| pkColumn ||' ||''´ is outside the buffer distance of ´'|| dist ||'´ from table ´'|| a_tbl ||'´.''
@@ -44,24 +44,24 @@ $$  language plpgsql;
 --
 -- This function checks if the topolotical relationship is valid.
 --
-create function omtg_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation text)
+create function ast_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation text)
    returns boolean as $$
 declare
-   pkColumn text := _omtg_getPrimaryKeyColumn(a_tbl);
+   pkColumn text := _ast_getPrimaryKeyColumn(a_tbl);
    res boolean;
 begin
 
    if pkColumn = '' then
-      raise exception 'OMTG_isTopologicalRelationshipValid function error.'
+      raise exception 'AST_isTopologicalRelationshipValid function error.'
          using detail = 'Table passed as first parameter does not have primary key and without it is not possible to validate the topological relationship.';
    end if;
 
-   if not _omtg_isOMTGDomain(a_tbl, a_geom) or not _omtg_isOMTGDomain(b_tbl, b_geom) or not _omtg_isTopologicalRelationship(relation)  then
-      raise exception 'OMTG_isTopologicalRelationshipValid error! Invalid parameters.'
-         using detail = 'Usage: SELECT omtg_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation text);';
+   if not _ast_isOMTGDomain(a_tbl, a_geom) or not _ast_isOMTGDomain(b_tbl, b_geom) or not _ast_isTopologicalRelationship(relation)  then
+      raise exception 'AST_isTopologicalRelationshipValid error! Invalid parameters.'
+         using detail = 'Usage: SELECT ast_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation text);';
    end if;
 
-   execute 'insert into omtg_violation_log (time, type, description) (
+   execute 'insert into ast_violation_log (time, type, description) (
          select now(),
                ''Topological relationship violation'',
                ''Topological relationship ('|| relation ||') between ´'|| a_tbl ||'´ and ´'|| b_tbl ||'´ is violated by the tuple of ´'|| a_tbl ||'´ with primary key ´''|| a.'|| pkColumn ||' ||''´.''
@@ -85,25 +85,25 @@ $$  language plpgsql;
 --
 -- This function checks if the arc-node network is valid.
 --
-create function omtg_isNetworkValid(arc_tbl text, arc_geom text, node_tbl text, node_geom text)
+create function ast_isNetworkValid(arc_tbl text, arc_geom text, node_tbl text, node_geom text)
    returns boolean as $$
 declare
-   pkColumn text := _omtg_getPrimaryKeyColumn(arc_tbl);
+   pkColumn text := _ast_getPrimaryKeyColumn(arc_tbl);
    res1 boolean;
    res2 boolean;
 begin
 
    if pkColumn = '' then
-      raise exception 'OMTG_isNetworkValid function error.'
+      raise exception 'AST_isNetworkValid function error.'
          using detail = 'ARC table does not have primary key and without it is not possible to validate the network.';
    end if;
 
-   if not _omtg_isOMTGDomain(arc_tbl, arc_geom) then
-      raise exception 'OMTG_isNetworkValid error! Invalid parameters.'
-         using detail = 'Usage: SELECT omtg_isNetworkValid(arc_tbl text, arc_geom text, node_tbl text, node_geom text);';
+   if not _ast_isOMTGDomain(arc_tbl, arc_geom) then
+      raise exception 'AST_isNetworkValid error! Invalid parameters.'
+         using detail = 'Usage: SELECT ast_isNetworkValid(arc_tbl text, arc_geom text, node_tbl text, node_geom text);';
    end if;
 
-   execute 'insert into omtg_violation_log (time, type, description) (
+   execute 'insert into ast_violation_log (time, type, description) (
          select now(),
                ''Arc-Node Network violation'',
                ''Start point of arc with primary key ´''|| '|| pkColumn ||' ||''´ does not intersect any node.''
@@ -115,7 +115,7 @@ begin
          )
       ) returning true;' into res1;
 
-   execute 'insert into omtg_violation_log (time, type, description) (
+   execute 'insert into ast_violation_log (time, type, description) (
          select now(),
                ''Arc-Node Network violation'',
                ''End point of arc with primary key ´''|| '|| pkColumn ||' ||''´ does not intersect any node.''
@@ -138,24 +138,24 @@ $$  language plpgsql;
 --
 -- This function checks if the arc-arc network is valid.
 --
-create function omtg_isNetworkValid(arc_tbl text, arc_geom text)
+create function ast_isNetworkValid(arc_tbl text, arc_geom text)
    returns boolean as $$
 declare
-   pkColumn text := _omtg_getPrimaryKeyColumn(arc_tbl);
+   pkColumn text := _ast_getPrimaryKeyColumn(arc_tbl);
    res boolean;
 begin
 
    if pkColumn = '' then
-      raise exception 'OMTG_isNetworkValid function error.'
+      raise exception 'AST_isNetworkValid function error.'
          using detail = 'ARC table does not have primary key and without it is not possible to validate the network.';
    end if;
 
-   if not _omtg_isOMTGDomain(arc_tbl, arc_geom) then
-      raise exception 'OMTG_isNetworkValid error! Invalid parameters.'
-         using detail = 'Usage: SELECT omtg_isNetworkValid(arc_tbl text, arc_geom text);';
+   if not _ast_isOMTGDomain(arc_tbl, arc_geom) then
+      raise exception 'AST_isNetworkValid error! Invalid parameters.'
+         using detail = 'Usage: SELECT ast_isNetworkValid(arc_tbl text, arc_geom text);';
    end if;
 
-   execute 'insert into omtg_violation_log (time, type, description) (
+   execute 'insert into ast_violation_log (time, type, description) (
          select now(),
                ''Arc-Arc Network violation'',
                ''Arcs ´''|| a.'|| pkColumn ||' ||''´ and ´''|| b.'|| pkColumn ||' ||''´ intersect each other on middle points.''
@@ -179,27 +179,27 @@ $$  language plpgsql;
 --
 -- This function checks if the spatial aggregation is valid.
 --
-create function omtg_isSpatialAggregationValid(part_tbl text, part_geom text, whole_tbl text, whole_geom text)
+create function ast_isSpatialAggregationValid(part_tbl text, part_geom text, whole_tbl text, whole_geom text)
    returns boolean as $$
 declare
-   pkColumn text := _omtg_getPrimaryKeyColumn(part_tbl);
+   pkColumn text := _ast_getPrimaryKeyColumn(part_tbl);
    res1 boolean;
    res2 boolean;
    res3 boolean;
 begin
 
    if pkColumn = '' then
-      raise exception 'OMTG_isSpatialAggregationValid function error.'
+      raise exception 'AST_isSpatialAggregationValid function error.'
          using detail = 'PART table does not have primary key and without it is not possible to validate the spatial aggregation.';
    end if;
 
-   if not _omtg_isOMTGDomain(part_tbl, part_geom) or not _omtg_isomtgdomain(whole_tbl, whole_geom) then
-      raise exception 'OMTG_isSpatialAggregationValid error! Invalid parameters.'
-         using detail = 'Usage: SELECT omtg_isSpatialAggregationValid(part_tbl text, part_geom text, whole_tbl text, whole_geom text);';
+   if not _ast_isOMTGDomain(part_tbl, part_geom) or not _ast_isomtgdomain(whole_tbl, whole_geom) then
+      raise exception 'AST_isSpatialAggregationValid error! Invalid parameters.'
+         using detail = 'Usage: SELECT ast_isSpatialAggregationValid(part_tbl text, part_geom text, whole_tbl text, whole_geom text);';
    end if;
 
    -- 1. Pi intersection W = Pi, for all i such as 0 <= i <= n
-   execute 'insert into omtg_violation_log (time, type, description) (
+   execute 'insert into ast_violation_log (time, type, description) (
          select now(),
             ''Spatial Aggregation violation'',
             ''The geometry of the PART with primary key ´''|| c.'|| pkColumn ||' ||''´ is not entirely contained within the geometry of the WHOLE.''
@@ -214,7 +214,7 @@ begin
 
 
    -- 3. ((Pi touch Pj) or (Pi disjoint Pj)) = T for all i, j such as i != j
-   execute 'insert into omtg_violation_log (time, type, description) (
+   execute 'insert into ast_violation_log (time, type, description) (
          select now(),
             ''Spatial Aggregation violation'',
             ''The geometries of the parts ´''|| b1.'|| pkColumn ||' ||''´ and ´''|| b2.'|| pkColumn ||' ||''´ are overlapping.''
@@ -229,7 +229,7 @@ begin
       from tablea a, tableb b;' into res3;
 
    if res3 then
-      execute 'insert into omtg_violation_log (time, type, description) (
+      execute 'insert into ast_violation_log (time, type, description) (
          select now(),
          ''Spatial Aggregation violation'',
          ''The geometry of the WHOLE is not fully covered by the geometry of the PARTS.''

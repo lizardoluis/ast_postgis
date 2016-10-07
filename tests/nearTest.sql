@@ -1,11 +1,11 @@
 create table tablea (
    id integer primary key,
-   geom omtg_point
+   geom ast_point
 );
 
 create table tableb (
    id integer primary key,
-   geom omtg_point
+   geom ast_point
 );
 
 delete from tableb;

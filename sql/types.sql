@@ -1,4 +1,4 @@
-CREATE TYPE _omtg_topologicalrelationship AS ENUM
+CREATE TYPE _ast_topologicalrelationship AS ENUM
 (
     'contains',
     'containsproperly',

@@ -1,19 +1,19 @@
 drop table tablea;
 create table tablea (
    id integer primary key,
-   geom omtg_polygon
+   geom ast_polygon
 );
 
 drop table tableb;
 create table tableb (
    id integer primary key,
-   geom omtg_polygon
+   geom ast_polygon
 );
 
 CREATE TRIGGER aggregation_trigger
 AFTER INSERT OR UPDATE OR DELETE ON tableb
    FOR EACH STATEMENT
-   EXECUTE PROCEDURE omtg_aggregation('tableb', 'geom', 'tablea', 'geom');
+   EXECUTE PROCEDURE ast_aggregation('tableb', 'geom', 'tablea', 'geom');
 
 
 
@@ -32,7 +32,7 @@ INSERT INTO tableb(id, geom) VALUES
 
    create table tabled (
       id integer primary key,
-      geom omtg_polygon
+      geom ast_polygon
    );
 
    delete from tabled;

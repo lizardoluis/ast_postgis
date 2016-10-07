@@ -1,7 +1,7 @@
 --
 -- Arc-Node relationship. Check if arcs are valid
 --
-CREATE FUNCTION _omtg_arcnodenetwork_onarc(arc regclass, node regclass, ageom text, ngeom text)
+CREATE FUNCTION _ast_arcnodenetwork_onarc(arc regclass, node regclass, ageom text, ngeom text)
 RETURNS BOOLEAN AS $$
    DECLARE
       res BOOLEAN;
@@ -29,7 +29,7 @@ $$ LANGUAGE plpgsql;
 --
 -- Arc-Node relationship. Check if nodes are valid
 --
-CREATE FUNCTION _omtg_arcnodenetwork_onnode(arc regclass, node regclass, ageom text, ngeom text)
+CREATE FUNCTION _ast_arcnodenetwork_onnode(arc regclass, node regclass, ageom text, ngeom text)
 RETURNS BOOLEAN AS $$
    DECLARE
       res BOOLEAN;
@@ -57,7 +57,7 @@ $$ LANGUAGE plpgsql;
 --
 -- Arc-Node network.
 --
-CREATE FUNCTION omtg_arcnodenetwork() RETURNS TRIGGER AS $$
+CREATE FUNCTION ast_arcnodenetwork() RETURNS TRIGGER AS $$
 DECLARE
    arc_tbl CONSTANT REGCLASS := TG_ARGV[0];
    arc_geom CONSTANT TEXT := quote_ident(TG_ARGV[1]);
@@ -65,25 +65,25 @@ DECLARE
    node_tbl CONSTANT REGCLASS := TG_ARGV[2];
    node_geom CONSTANT TEXT := quote_ident(TG_ARGV[3]);
 
-   arc_domain CONSTANT TEXT := _omtg_getGeomColumnDomain(arc_tbl, arc_geom);
-   node_domain CONSTANT TEXT := _omtg_getGeomColumnDomain(node_tbl, node_geom);
+   arc_domain CONSTANT TEXT := _ast_getGeomColumnDomain(arc_tbl, arc_geom);
+   node_domain CONSTANT TEXT := _ast_getGeomColumnDomain(node_tbl, node_geom);
 
 BEGIN
 
    -- Validate trigger settings
    IF TG_WHEN != 'AFTER' THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+      RAISE EXCEPTION 'OMT-G error at ast_arcnodenetwork.'
          USING DETAIL = 'Trigger must be fired with AFTER statement.';
    END IF;
 
    IF TG_LEVEL != 'STATEMENT' THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+      RAISE EXCEPTION 'OMT-G error at ast_arcnodenetwork.'
          USING DETAIL = 'Trigger must be of STATEMENT level.';
    END IF;
 
     -- Validate input parameters
-   IF TG_NARGS != 4 OR node_domain != 'omtg_node' OR (arc_domain != 'omtg_uniline' AND arc_domain != 'omtg_biline' ) THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+   IF TG_NARGS != 4 OR node_domain != 'ast_node' OR (arc_domain != 'ast_uniline' AND arc_domain != 'ast_biline' ) THEN
+      RAISE EXCEPTION 'OMT-G error at ast_arcnodenetwork.'
          USING DETAIL = 'Invalid parameters.';
    END IF;
 
@@ -92,18 +92,18 @@ BEGIN
 
       -- Check which table fired the trigger
       IF TG_TABLE_NAME = arc_tbl::TEXT THEN
-         IF NOT _omtg_arcnodenetwork_onarc(arc_tbl, node_tbl, arc_geom, node_geom) THEN
+         IF NOT _ast_arcnodenetwork_onarc(arc_tbl, node_tbl, arc_geom, node_geom) THEN
             RAISE EXCEPTION 'OMT-G Arc-Node network constraint violation at table %.', TG_TABLE_NAME
                USING DETAIL = 'For each arc at least two nodes must exist at the arc extrem points.';
          END IF;
       ELSIF TG_TABLE_NAME = node_tbl::TEXT THEN
-         IF NOT _omtg_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
+         IF NOT _ast_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
             RAISE EXCEPTION 'OMT-G Arc-Node network constraint violation at table %.', TG_TABLE_NAME
                USING DETAIL = 'For each node at least one arc must exist.';
          END IF;
       ELSE
-         IF NOT _omtg_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
-            RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+         IF NOT _ast_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
+            RAISE EXCEPTION 'OMT-G error at ast_arcnodenetwork.'
                USING DETAIL = 'Was not possible to identify the table which fired the trigger.';
          END IF;
       END IF;
@@ -111,24 +111,24 @@ BEGIN
    ELSIF TG_OP = 'DELETE' THEN
 
       IF TG_TABLE_NAME = arc_tbl::TEXT THEN
-         IF NOT _omtg_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
+         IF NOT _ast_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
             RAISE EXCEPTION 'OMT-G Arc-Node network constraint violation at table %.', TG_TABLE_NAME
                USING DETAIL = 'Cannot delete the arc because there are nodes connected to it.';
          END IF;
       ELSIF TG_TABLE_NAME = node_tbl::TEXT THEN
-         IF NOT _omtg_arcnodenetwork_onarc(arc_tbl, node_tbl, arc_geom, node_geom) THEN
+         IF NOT _ast_arcnodenetwork_onarc(arc_tbl, node_tbl, arc_geom, node_geom) THEN
             RAISE EXCEPTION 'OMT-G Arc-Node network constraint violation at table %.', TG_TABLE_NAME
                USING DETAIL = 'Cannot delete the node because there are arcs connected to it.';
          END IF;
       ELSE
-         IF NOT _omtg_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
-            RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+         IF NOT _ast_arcnodenetwork_onnode(arc_tbl, node_tbl, arc_geom, node_geom) THEN
+            RAISE EXCEPTION 'OMT-G error at ast_arcnodenetwork.'
                USING DETAIL = 'Was not possible to identify the table which fired the trigger.';
          END IF;
       END IF;
 
    ELSE
-      RAISE EXCEPTION 'OMT-G error at omtg_arcnodenetwork.'
+      RAISE EXCEPTION 'OMT-G error at ast_arcnodenetwork.'
          USING DETAIL = 'Event not supported. Please create a trigger with INSERT, UPDATE or a DELETE event.';
    END IF;
 
@@ -141,28 +141,28 @@ $$ LANGUAGE plpgsql;
 --
 -- Arc-Arc network.
 --
-CREATE FUNCTION omtg_arcarcnetwork() RETURNS TRIGGER AS $$
+CREATE FUNCTION ast_arcarcnetwork() RETURNS TRIGGER AS $$
 DECLARE
    arc_tbl CONSTANT REGCLASS := TG_ARGV[0];
    arc_geom CONSTANT TEXT := quote_ident(TG_ARGV[1]);
 
-   arc_domain CONSTANT TEXT := _omtg_getGeomColumnDomain(arc_tbl, arc_geom);
+   arc_domain CONSTANT TEXT := _ast_getGeomColumnDomain(arc_tbl, arc_geom);
 
    res BOOLEAN;
 BEGIN
 
    IF TG_WHEN != 'AFTER' THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_arcarcnetwork.'
+      RAISE EXCEPTION 'OMT-G error at ast_arcarcnetwork.'
          USING DETAIL = 'Trigger must be fired with AFTER statement.';
    END IF;
 
    IF TG_LEVEL != 'STATEMENT' THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_arcarcnetwork.'
+      RAISE EXCEPTION 'OMT-G error at ast_arcarcnetwork.'
         USING DETAIL = 'Trigger must be of STATEMENT level.';
    END IF;
 
-   IF TG_NARGS != 2 OR TG_TABLE_NAME != arc_tbl::TEXT OR (arc_domain != 'omtg_uniline' AND arc_domain != 'omtg_biline' ) THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_arcarcnetwork.'
+   IF TG_NARGS != 2 OR TG_TABLE_NAME != arc_tbl::TEXT OR (arc_domain != 'ast_uniline' AND arc_domain != 'ast_biline' ) THEN
+      RAISE EXCEPTION 'OMT-G error at ast_arcarcnetwork.'
          USING DETAIL = 'Invalid parameters.';
    END IF;
 
@@ -191,7 +191,7 @@ $$ LANGUAGE plpgsql;
 --
 -- Topological relationship.
 --
-CREATE FUNCTION omtg_topologicalrelationship() RETURNS TRIGGER AS $$
+CREATE FUNCTION ast_topologicalrelationship() RETURNS TRIGGER AS $$
 DECLARE
    a_tbl CONSTANT REGCLASS := TG_ARGV[0];
    a_geom CONSTANT TEXT := quote_ident(TG_ARGV[1]);
@@ -199,24 +199,24 @@ DECLARE
    b_tbl CONSTANT REGCLASS := TG_ARGV[2];
    b_geom CONSTANT TEXT := quote_ident(TG_ARGV[3]);
 
-   operator _omtg_topologicalrelationship;
+   operator _ast_topologicalrelationship;
    dist REAL;
 
    res BOOLEAN;
 BEGIN
 
    IF TG_WHEN != 'AFTER' THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
+      RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
          USING DETAIL = 'Trigger must be fired with AFTER statement.';
    END IF;
 
    IF TG_LEVEL != 'STATEMENT' THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
+      RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
          USING DETAIL = 'Trigger must be of STATEMENT level.';
    END IF;
 
-   IF TG_NARGS != 5 OR NOT _omtg_isOMTGDomain(a_tbl, a_geom) OR NOT _omtg_isOMTGDomain(b_tbl, b_geom) THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
+   IF TG_NARGS != 5 OR NOT _ast_isOMTGDomain(a_tbl, a_geom) OR NOT _ast_isOMTGDomain(b_tbl, b_geom) THEN
+      RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
          USING DETAIL = 'Invalid parameters.';
    END IF;
 
@@ -225,7 +225,7 @@ BEGIN
 
       -- Trigger table must be the same used on the first parameter
       IF TG_TABLE_NAME != a_tbl::TEXT THEN
-         RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
+         RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
             USING DETAIL = 'Invalid parameters. Table that fires the trigger must be the first parameter of the function when firing after INSERT or UPDATE.';
       END IF;
 
@@ -233,18 +233,18 @@ BEGIN
 
       -- Trigger table must be the same used on the second parameter
       IF TG_TABLE_NAME != b_tbl::TEXT THEN
-         RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
+         RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
             USING DETAIL = 'Invalid parameters. Table that fires the trigger must be the second parameter of the function when firing after a DELETE.';
       END IF;
 
    ELSE
-      RAISE EXCEPTION 'OMT-G error at omtg_topologicalrelationship.'
+      RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
          USING DETAIL = 'Event not supported. Please create a trigger with INSERT, UPDATE or a DELETE event.';
    END IF;
 
 
    -- Checks if the fourth argument is a number to perform near function or normal.
-   IF _omtg_isnumeric(TG_ARGV[4]) THEN
+   IF _ast_isnumeric(TG_ARGV[4]) THEN
       dist := TG_ARGV[4];
 
       -- Near check
@@ -288,7 +288,7 @@ $$ LANGUAGE plpgsql;
 --
 -- Aggregation.
 --
-CREATE FUNCTION omtg_aggregation() RETURNS TRIGGER AS $$
+CREATE FUNCTION ast_aggregation() RETURNS TRIGGER AS $$
 DECLARE
 
    part_tbl CONSTANT REGCLASS := TG_ARGV[0];
@@ -303,17 +303,17 @@ DECLARE
 BEGIN
 
    IF TG_WHEN != 'AFTER' THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_aggregation.'
+      RAISE EXCEPTION 'OMT-G error at ast_aggregation.'
          USING DETAIL = 'Trigger must be fired with AFTER statement.';
    END IF;
 
    IF TG_LEVEL != 'STATEMENT' THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_aggregation.'
+      RAISE EXCEPTION 'OMT-G error at ast_aggregation.'
          USING DETAIL = 'Trigger must be of STATEMENT level.';
    END IF;
 
-   IF TG_NARGS != 4 OR TG_TABLE_NAME != part_tbl::TEXT OR NOT _omtg_isOMTGDomain(whole_tbl, whole_geom) OR NOT _omtg_isOMTGDomain(part_tbl, part_geom) THEN
-      RAISE EXCEPTION 'OMT-G error at omtg_aggregation.'
+   IF TG_NARGS != 4 OR TG_TABLE_NAME != part_tbl::TEXT OR NOT _ast_isOMTGDomain(whole_tbl, whole_geom) OR NOT _ast_isOMTGDomain(part_tbl, part_geom) THEN
+      RAISE EXCEPTION 'OMT-G error at ast_aggregation.'
          USING DETAIL = 'Invalid parameters.';
    END IF;
 
@@ -366,12 +366,12 @@ $$ LANGUAGE plpgsql;
 --
 -- This function returns the name of the column given its type.
 --
-CREATE FUNCTION _omtg_createOnDeleteTriggerOnTable(tgrname text, tname text, procedure text) RETURNS void AS $$
+CREATE FUNCTION _ast_createOnDeleteTriggerOnTable(tgrname text, tname text, procedure text) RETURNS void AS $$
 BEGIN
    -- Check if trigger already exists
-   IF NOT _omtg_isTriggerEnable(tgrname) THEN
+   IF NOT _ast_isTriggerEnable(tgrname) THEN
       -- Suspend event trigger to avoid loop
-      EXECUTE 'ALTER EVENT TRIGGER omtg_validate_triggers DISABLE;';
+      EXECUTE 'ALTER EVENT TRIGGER ast_validate_triggers DISABLE;';
 
       EXECUTE 'CREATE TRIGGER '|| tgrname ||' AFTER DELETE ON '|| tname ||'
           FOR EACH STATEMENT EXECUTE PROCEDURE '|| procedure ||';';
@@ -379,7 +379,7 @@ BEGIN
       --RAISE NOTICE 'Trigger created AFTER DELETE on table % with % procedure.', tname, procedure;
 
       -- Enable event trigger again
-      EXECUTE 'ALTER EVENT TRIGGER omtg_validate_triggers ENABLE;';
+      EXECUTE 'ALTER EVENT TRIGGER ast_validate_triggers ENABLE;';
    END IF;
 
 END;
@@ -390,7 +390,7 @@ $$  LANGUAGE plpgsql;
 --
 -- This function adds the right trigger to a table with a geometry omtg column.
 --
-CREATE FUNCTION _omtg_validateTrigger() RETURNS event_trigger AS $$
+CREATE FUNCTION _ast_validateTrigger() RETURNS event_trigger AS $$
 DECLARE
    r record;
    events text[];
@@ -411,12 +411,12 @@ BEGIN
         -- verify that tags match
       IF r.command_tag = 'CREATE TRIGGER' THEN
 
-         timing := (_omtg_triggerParser(r.objid)).timing;
-         function_name := (_omtg_triggerParser(r.objid)).function_name;
-         row_statement := (_omtg_triggerParser(r.objid)).row_statement;
-         function_arguments := (_omtg_triggerParser(r.objid)).function_arguments;
-         table_name := (_omtg_triggerParser(r.objid)).table_name;
-         events := _omtg_arraylower((_omtg_triggerParser(r.objid)).events);
+         timing := (_ast_triggerParser(r.objid)).timing;
+         function_name := (_ast_triggerParser(r.objid)).function_name;
+         row_statement := (_ast_triggerParser(r.objid)).row_statement;
+         function_arguments := (_ast_triggerParser(r.objid)).function_arguments;
+         table_name := (_ast_triggerParser(r.objid)).table_name;
+         events := _ast_arraylower((_ast_triggerParser(r.objid)).events);
 
          -- trigger must be fired after an statement
          IF timing != 'AFTER' or row_statement != 'STATEMENT'  THEN
@@ -426,25 +426,25 @@ BEGIN
 
          CASE function_name
 
-            WHEN 'omtg_arcarcnetwork' THEN
+            WHEN 'ast_arcarcnetwork' THEN
 
                -- number of arguments
                IF array_length(function_arguments, 1) != 2 THEN
                   RAISE EXCEPTION 'OMT-G error at ARC-ARC NETWORK constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Invalid procedure parameters. Usage: omtg_arcarcnetwork(''arc_tbl'', ''arc_geom'').';
+                     USING DETAIL = 'Invalid procedure parameters. Usage: ast_arcarcnetwork(''arc_tbl'', ''arc_geom'').';
                END IF;
 
                -- table that fired the trigger must be the same of the parameter
                IF function_arguments[1] != table_name THEN
                   RAISE EXCEPTION 'OMT-G error at ARC-ARC NETWORK constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Invalid procedure parameters. Table associated with the trigger must be passed in the first parameter. Usage: omtg_arcarcnetwork(''arc_table'', ''arc_geometry'').';
+                     USING DETAIL = 'Invalid procedure parameters. Table associated with the trigger must be passed in the first parameter. Usage: ast_arcarcnetwork(''arc_table'', ''arc_geometry'').';
                END IF;
 
                -- domain must be an arc
-               arc_domain := _omtg_getGeomColumnDomain(function_arguments[1], function_arguments[2]);
-               IF arc_domain != 'omtg_uniline' AND arc_domain != 'omtg_biline' THEN
+               arc_domain := _ast_getGeomColumnDomain(function_arguments[1], function_arguments[2]);
+               IF arc_domain != 'ast_uniline' AND arc_domain != 'ast_biline' THEN
                   RAISE EXCEPTION 'OMT-G error at ARC-ARC NETWORK constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Table passed as parameter does not contain an arc geometry (omtg_uniline or omtg_biline).';
+                     USING DETAIL = 'Table passed as parameter does not contain an arc geometry (ast_uniline or ast_biline).';
                END IF;
 
                -- trigger events must be insert, delete and update
@@ -454,20 +454,20 @@ BEGIN
                END IF;
 
 
-            WHEN 'omtg_arcnodenetwork' THEN
+            WHEN 'ast_arcnodenetwork' THEN
 
                -- number of arguments
                IF array_length(function_arguments, 1) != 4 THEN
                   RAISE EXCEPTION 'OMT-G error at ARC-NODE NETWORK constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Invalid procedure parameters. Usage: omtg_arcnodenetwork(''arc_tbl'', ''arc_geom'', ''node_tbl'', ''node_geom'').';
+                     USING DETAIL = 'Invalid procedure parameters. Usage: ast_arcnodenetwork(''arc_tbl'', ''arc_geom'', ''node_tbl'', ''node_geom'').';
                END IF;
 
                -- domain must be arc and node
-               arc_domain := _omtg_getGeomColumnDomain(function_arguments[1], function_arguments[2]);
-               node_domain := _omtg_getGeomColumnDomain(function_arguments[3], function_arguments[4]);
-               IF node_domain != 'omtg_node' OR (arc_domain != 'omtg_uniline' AND arc_domain != 'omtg_biline' ) THEN
+               arc_domain := _ast_getGeomColumnDomain(function_arguments[1], function_arguments[2]);
+               node_domain := _ast_getGeomColumnDomain(function_arguments[3], function_arguments[4]);
+               IF node_domain != 'ast_node' OR (arc_domain != 'ast_uniline' AND arc_domain != 'ast_biline' ) THEN
                   RAISE EXCEPTION 'OMT-G error at ARC-NODE NETWORK constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Arc table must heve OMTG_UNILINE or OMTG_BILINE geometry. Node table must have OMTG_NODE geometry.';
+                     USING DETAIL = 'Arc table must heve AST_UNILINE or AST_BILINE geometry. Node table must have AST_NODE geometry.';
                END IF;
 
                IF table_name != function_arguments[1] AND table_name != function_arguments[3] THEN
@@ -489,24 +489,24 @@ BEGIN
                   on_tbl := function_arguments[1];
                END IF;
 
-               PERFORM _omtg_createOnDeleteTriggerOnTable(
+               PERFORM _ast_createOnDeleteTriggerOnTable(
                   split_part(r.object_identity, ' ', 1) ||'_auto',
                   on_tbl,
-                  'omtg_arcnodenetwork('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||')'
+                  'ast_arcnodenetwork('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||')'
                );
 
 
-            WHEN 'omtg_topologicalrelationship' THEN
+            WHEN 'ast_topologicalrelationship' THEN
 
                -- number of arguments
-               IF array_length(function_arguments, 1) != 5 OR NOT _omtg_isOMTGDomain(function_arguments[1], function_arguments[2]) OR NOT _omtg_isOMTGDomain(function_arguments[3], function_arguments[4]) THEN
+               IF array_length(function_arguments, 1) != 5 OR NOT _ast_isOMTGDomain(function_arguments[1], function_arguments[2]) OR NOT _ast_isOMTGDomain(function_arguments[3], function_arguments[4]) THEN
                   RAISE EXCEPTION 'OMT-G error at TOPOLOGICAL RELATIONSHIP constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Invalid procedure parameters. Usage: omtg_topologicalrelationship(''a_tbl'', ''a_geom'', ''b_tbl'', ''b_geom'', ''operator/distance'').';
+                     USING DETAIL = 'Invalid procedure parameters. Usage: ast_topologicalrelationship(''a_tbl'', ''a_geom'', ''b_tbl'', ''b_geom'', ''operator/distance'').';
                END IF;
 
-               IF NOT _omtg_isnumeric(function_arguments[5]) AND NOT _omtg_isTopologicalRelationship(function_arguments[5]) THEN
+               IF NOT _ast_isnumeric(function_arguments[5]) AND NOT _ast_isTopologicalRelationship(function_arguments[5]) THEN
                   RAISE EXCEPTION 'OMT-G error at TOPOLOGICAL RELATIONSHIP constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Invalid procedure parameters. Usage: omtg_topologicalrelationship(''a_tbl'', ''a_geom'', ''b_tbl'', ''b_geom'', ''operator/distance'').';
+                     USING DETAIL = 'Invalid procedure parameters. Usage: ast_topologicalrelationship(''a_tbl'', ''a_geom'', ''b_tbl'', ''b_geom'', ''operator/distance'').';
                END IF;
 
                IF table_name != function_arguments[1] AND table_name != function_arguments[3] THEN
@@ -520,18 +520,18 @@ BEGIN
                      USING DETAIL = 'TOPOLOGICAL RELATIONSHIP trigger events must be INSERT OR UPDATE.';
                END IF;
 
-               PERFORM _omtg_createOnDeleteTriggerOnTable(
+               PERFORM _ast_createOnDeleteTriggerOnTable(
                   split_part(r.object_identity, ' ', 1) ||'_auto',
                   function_arguments[3],
-                  'omtg_topologicalrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||')'
+                  'ast_topologicalrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||')'
                );
 
-            WHEN 'omtg_aggregation' THEN
+            WHEN 'ast_aggregation' THEN
 
                -- number of arguments
-               IF array_length(function_arguments, 1) != 4 OR NOT _omtg_isOMTGDomain(function_arguments[1], function_arguments[2]) OR NOT _omtg_isOMTGDomain(function_arguments[3], function_arguments[4]) THEN
+               IF array_length(function_arguments, 1) != 4 OR NOT _ast_isOMTGDomain(function_arguments[1], function_arguments[2]) OR NOT _ast_isOMTGDomain(function_arguments[3], function_arguments[4]) THEN
                   RAISE EXCEPTION 'OMT-G error at AGGREGATION constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Invalid procedure parameters. Usage: omtg_aggregation(''part_tbl'', ''part_geom'', ''whole_tbl'', ''whole_geom'').';
+                     USING DETAIL = 'Invalid procedure parameters. Usage: ast_aggregation(''part_tbl'', ''part_geom'', ''whole_tbl'', ''whole_geom'').';
                END IF;
 
                IF table_name != function_arguments[1] THEN

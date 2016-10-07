@@ -37,5 +37,5 @@ Temporary Items
 .Trash-*
 
 # Postgres extension result file
-postgis_omtg--0.1.0.sql
-postgis_omtg--1.0.0.sql
+ast_postgis--0.1.0.sql
+ast_postgis--1.0.0.sql

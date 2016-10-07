@@ -3,7 +3,7 @@ drop table if exists walls;
 create table walls (
     id SERIAL,
     name VARCHAR(20),
-    geom OMTG_LINE
+    geom ast_LINE
 );
 
 INSERT INTO walls(name, geom)

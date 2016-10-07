@@ -1,13 +1,13 @@
 drop table arc;
 create table arc (
 	id integer,
-	geom omtg_biline
+	geom ast_biline
 );
 
 create trigger arcarc_trigger
 AFTER INSERT OR UPDATE OR DELETE ON arc
 	FOR EACH STATEMENT
-	EXECUTE PROCEDURE omtg_arcarcnetwork('arc', 'geom');
+	EXECUTE PROCEDURE ast_arcarcnetwork('arc', 'geom');
 
 delete from arc;
 insert into arc (id, geom) values
