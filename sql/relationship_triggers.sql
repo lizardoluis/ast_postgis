@@ -414,7 +414,7 @@ BEGIN
          timing := (_ast_triggerParser(r.objid)).timing;
          function_name := (_ast_triggerParser(r.objid)).function_name;
          row_statement := (_ast_triggerParser(r.objid)).row_statement;
-         function_arguments := (_ast_triggerParser(r.objid)).function_arguments;
+         function_arguments := _ast_arraylower((_ast_triggerParser(r.objid)).function_arguments);
          table_name := (_ast_triggerParser(r.objid)).table_name;
          events := _ast_arraylower((_ast_triggerParser(r.objid)).events);
 
