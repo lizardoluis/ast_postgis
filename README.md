@@ -184,11 +184,13 @@ The SQL functions listed in this section can be called to analyze the consistenc
    </thead>
    <tr>
       <td>Topological Relationship</td>
+      <td><code>ast_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation text)</code></td>
+      <td>Topological Relationship (near)</td>
       <td><code>ast_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real)</code></td>
    </tr>
    <tr>
       <td>Topological Relationship (near)</td>
-      <td><code>ast_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation text)</code></td>
+      <td><code>ast_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real)</code></td>
    </tr>
    <tr>
       <td>Arc-Node Network</td>
