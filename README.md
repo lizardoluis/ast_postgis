@@ -1,16 +1,12 @@
-Overview
-========
+AST-PostGIS
+===========
 
-This PostgreSQL extension implements advanced spatial data types and spatial integrity constraints.  The data types and constraints are those defined in the [OMT-G](http://homepages.dcc.ufmg.br/~clodoveu/DocuWiki/doku.php?id=omtg), an object-oriented data model for geographic applications. See below for more details.
+The AST-PostGIS is an extension for PostgreSQL/PostGIS that incorporates advanced spatial data types and implements spatial integrity constraints. The extension reduces the distance between the conceptual and the physical designs of spatial databases, by providing richer representations for geo-object and geo-field geometries. It also offers procedures to assert the consistency of spatial relationships during data updates. Such procedures can also be used before enforcing spatial integrity constraints for the first time.
 
 Motivation
 ----------
 
-Relational database management systems (RDBMS) were never designed since their concept to support spatial data. They were, nonetheless, expanded with modules that implement predicates, indexes structures and procedures that allow us store and manage spatial data. Such expansions, like PostGIS or Oracle Spatial, follow the standards defined by the OGC and are widely used by spatial database designers.
-
-However, those expansions still do not offer all the necessary support to manager spatial data. Because their data types are usually semantically poor, nothing more then points, lines and polygons, and they do not implement spatial integrity constraints, which are different from those supported by relational databases as they make use of the spatial characteristics of the data. For instance, 'Gas stations cannot be 300 meters close to any school'.   
-
-Therefore, this extension implements advanced spatial data types, integrity constraints procedures and consistency check functions to improve the design and consistency of spatial databases and, also, to reduce the gap between spatial conceptual models, which offer semantically rich data types and various integrity constraints, and the physical implementation on databases.
+Geometric primitives defined by OGC and ISO standards, implemented in most modern spatially-enabled database management systems (DBMS), are unable to capture the semantics of richer representation types, as found in current geographic data models. Moreover, relational DBMSs do not extend referential integrity mechanisms to cover spatial relationships and to support spatial integrity constraints. Rather, they usually assume that all spatial integrity checking will be carried out by the application, during the data entry process. This is not practical if the DBMS supports many applications, and can lead to redundant work.
 
 
 Compatibility
@@ -54,13 +50,15 @@ After you've built and installed the artifacts, fire up `psql`:
 Usage
 =====
 
-Here is explained how this extension works.
+Here is explained how the extension works.
 
 
 Advanced Spatial Data Types
 ---------------------------
 
-The following table shows all the data types implemented by the extension and how they are mapped to the PostGIS types. The use of these data types generates automatic triggers to enforce topological and semantic integrity constraints.
+Advanced Spatial Types are essentially the primitive geometric types of PostGIS together with a set of spatial integrity constraints to control their behavior. These new spatial data types can be handled in the same way the primitive types are, as they can be employed as column definition of tables, as variables in PL/pgSQL scripts or as arguments of functions or stored procedures. They can also be stored, retrieved and updated with the geometry processing functions of PostGIS.
+
+The following table shows the eleven advanced spatial data types implemented by the extension and how they are mapped to the PostGIS types. These types are derived from the concepts of geo-objects and geo-fields classes of the [OMT-G data model](http://link.springer.com/article/10.1023/A:1011482030093).
 
 <table>
    <thead>
@@ -167,6 +165,7 @@ The `spatial_relation` argument, which are passed as an argument to the topologi
 * crosses
 * disjoint
 * intersects
+* near
 * overlaps
 * touches
 * within
@@ -175,7 +174,7 @@ The `spatial_relation` argument, which are passed as an argument to the topologi
 Consistency check functions
 ---------------------------
 
-The SQL functions listed in this section can be called to analyze the consistency of the spatial database. These functions return the state of the database (`true` = valid, `false` = invalid) and register, in the `ast_validation_log` table, the details of each inconsistency encountered.
+The SQL functions listed in this section can be called to analyze the consistency of the spatial database before the initial enforcement of constraints. These functions return the state of the database (`true` = valid, `false` = invalid) and register, in the `ast_validation_log` table, the details of each inconsistency encountered.
 
 <table>
    <thead>
@@ -217,7 +216,7 @@ The following figure shows a schema fragment for a bus transportation network (n
 
 <img src="https://github.com/lizardoluis/ast_postgis/blob/master/examples/transportation_system/squema.png" alt="Transportation system schema" width="50%">
 
-The implementation of this schema that uses the `ast_postgis` extension and considerers all the spatial constraints is as follows:
+The implementation of this schema that uses the `ast_postgis` extension and considers all the spatial constraints is as follows:
 
       create table bus_line (
          line_number integer primary key,
@@ -260,6 +259,6 @@ The implementation of this schema that uses the `ast_postgis` extension and cons
 License and Copyright
 =====================
 
-ast_postgis is released under a [MIT license](doc/LICENSE).
+AST-PostGIS is released under a [MIT license](doc/LICENSE).
 
-Copyright (c) 2016 Luis Eduardo Oliveira Lizardo.
+Copyright (c) 2016 Luís Eduardo Oliveira Lizardo.
