@@ -215,7 +215,7 @@ BEGIN
          USING DETAIL = 'Trigger must be of STATEMENT level.';
    END IF;
 
-   IF TG_NARGS != 5 OR NOT _ast_isOMTGDomain(a_tbl, a_geom) OR NOT _ast_isOMTGDomain(b_tbl, b_geom) THEN
+   IF (TG_NARGS != 5 AND TG_NARGS != 6) OR NOT _ast_isOMTGDomain(a_tbl, a_geom) OR NOT _ast_isOMTGDomain(b_tbl, b_geom) THEN
       RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
          USING DETAIL = 'Invalid parameters.';
    END IF;
@@ -239,13 +239,15 @@ BEGIN
 
    ELSE
       RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
-         USING DETAIL = 'Event not supported. Please create a trigger with INSERT, UPDATE or a DELETE event.';
+         USING DETAIL = 'Event not supported. Please create a trigger with INSERT, UPDATE or DELETE event.';
    END IF;
 
 
    -- Checks if the fourth argument is a number to perform near function or normal.
    IF operator = 'near' THEN
       dist := TG_ARGV[5];
+
+      raise notice 'NEAR %, %, %, %, %', a_tbl, b_tbl, a_geom, b_geom, dist;
 
       -- Near check
       EXECUTE 'SELECT EXISTS(
@@ -257,12 +259,14 @@ BEGIN
       );' into res;
 
       IF res THEN
-         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation between tables % and %.', a_tbl, b_tbl
+         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation between % and %.', a_tbl, b_tbl
             USING DETAIL = 'Spatial objects are not inside the given distance.';
       END IF;
 
    ELSIF operator = 'distant' THEN
       dist := TG_ARGV[5];
+
+      raise notice 'DISTANT %, %, %, %, %', a_tbl, b_tbl, a_geom, b_geom, dist;
 
       -- Distant check
       EXECUTE 'SELECT EXISTS(
@@ -274,7 +278,7 @@ BEGIN
       );' into res;
 
       IF res THEN
-         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation between tables % and %.', a_tbl, b_tbl
+         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation between ''%'' and ''%''.', a_tbl, b_tbl
             USING DETAIL = 'Spatial objects are not outside the given distance.';
       END IF;
 
@@ -290,7 +294,7 @@ BEGIN
       );' into res;
 
       IF res THEN
-         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation (%) between tables % and %.', operator::text, a_tbl, b_tbl;
+         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation (%) between tables ''%'' and ''%''.', operator::text, a_tbl, b_tbl;
       END IF;
 
    END IF;
@@ -535,11 +539,13 @@ BEGIN
                      USING DETAIL = 'TOPOLOGICAL RELATIONSHIP trigger events must be INSERT OR UPDATE.';
                END IF;
 
-               PERFORM _ast_createOnDeleteTriggerOnTable(
-                  split_part(r.object_identity, ' ', 1) ||'_auto',
-                  function_arguments[3],
-                  'ast_topologicalrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||')'
-               );
+               IF function_arguments[5] != 'near' and function_arguments[5] != 'distant' THEN
+                  PERFORM _ast_createOnDeleteTriggerOnTable(
+                     split_part(r.object_identity, ' ', 1) ||'_auto',
+                     function_arguments[3],
+                     'ast_topologicalrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||')'
+                  );
+               END IF;
 
 
             WHEN 'ast_aggregation' THEN
