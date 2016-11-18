@@ -3,4 +3,4 @@ comment = 'Advanced spatial data types and spatial integrity constraints for Pos
 default_version = '1.0.0'
 module_pathname = '$libdir/ast_postgis'
 relocatable = true
-requires = 'postgis, postgis_topology'
+requires = 'postgis'
