@@ -199,7 +199,7 @@ DECLARE
    b_tbl CONSTANT REGCLASS := TG_ARGV[2];
    b_geom CONSTANT TEXT := quote_ident(TG_ARGV[3]);
 
-   operator _ast_topologicalrelationship;
+   operator _ast_topologicalrelationship := quote_ident(TG_ARGV[4]);
    dist REAL;
 
    res BOOLEAN;
@@ -244,11 +244,28 @@ BEGIN
 
 
    -- Checks if the fourth argument is a number to perform near function or normal.
-   IF _ast_isnumeric(TG_ARGV[4]) THEN
-      dist := TG_ARGV[4];
+   IF operator = 'near' THEN
+      dist := TG_ARGV[5];
 
       -- Near check
-      EXECUTE 'SELECT NOT EXISTS(
+      EXECUTE 'SELECT EXISTS(
+         SELECT 1
+         FROM '|| a_tbl ||' AS a
+         RIGHT JOIN '|| b_tbl ||' AS b
+         ON ST_DWITHIN(a.'|| a_geom ||', b.'|| b_geom ||', '|| dist ||')
+         WHERE a.'|| a_geom ||' IS NULL
+      );' into res;
+
+      IF res THEN
+         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation between tables % and %.', a_tbl, b_tbl
+            USING DETAIL = 'Spatial objects are not inside the given distance.';
+      END IF;
+
+   ELSIF operator = 'distant' THEN
+      dist := TG_ARGV[5];
+
+      -- Distant check
+      EXECUTE 'SELECT EXISTS(
          SELECT 1
          FROM '|| a_tbl ||' AS a
          LEFT JOIN '|| b_tbl ||' AS b
@@ -258,12 +275,11 @@ BEGIN
 
       IF res THEN
          RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation between tables % and %.', a_tbl, b_tbl
-            USING DETAIL = 'Spatial object is not within the given distance.';
+            USING DETAIL = 'Spatial objects are not outside the given distance.';
       END IF;
 
-   ELSE
-      operator := quote_ident(TG_ARGV[4]);
 
+   ELSE
       -- Topological test
       EXECUTE 'SELECT EXISTS(
          SELECT 1
@@ -437,7 +453,7 @@ BEGIN
                -- table that fired the trigger must be the same of the parameter
                IF function_arguments[1] != table_name THEN
                   RAISE EXCEPTION 'OMT-G error at ARC-ARC NETWORK constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Invalid procedure parameters. Table associated with the trigger must be passed in the first parameter. Usage: ast_arcarcnetwork(''arc_table'', ''arc_geometry'').';
+                     USING DETAIL = 'Invalid procedure parameters. Table associated with the trigger must be passed as the first parameter. Usage: ast_arcarcnetwork(''arc_table'', ''arc_geometry'').';
                END IF;
 
                -- domain must be an arc
@@ -467,12 +483,12 @@ BEGIN
                node_domain := _ast_getGeomColumnDomain(function_arguments[3], function_arguments[4]);
                IF node_domain != 'ast_node' OR (arc_domain != 'ast_uniline' AND arc_domain != 'ast_biline' ) THEN
                   RAISE EXCEPTION 'OMT-G error at ARC-NODE NETWORK constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Arc table must heve AST_UNILINE or AST_BILINE geometry. Node table must have AST_NODE geometry.';
+                     USING DETAIL = 'Arc table must have AST_UNILINE or AST_BILINE geometry. Node table must have AST_NODE geometry.';
                END IF;
 
                IF table_name != function_arguments[1] AND table_name != function_arguments[3] THEN
                   RAISE EXCEPTION 'OMT-G error at ARC-NODE NETWORK constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Table that fires the trigger must be passed through the procedure parameters.';
+                     USING DETAIL = 'Table that fires the trigger must be passed as a parameter.';
                END IF;
 
                -- only insert or update
@@ -499,19 +515,18 @@ BEGIN
             WHEN 'ast_topologicalrelationship' THEN
 
                -- number of arguments
-               IF array_length(function_arguments, 1) != 5 OR NOT _ast_isOMTGDomain(function_arguments[1], function_arguments[2]) OR NOT _ast_isOMTGDomain(function_arguments[3], function_arguments[4]) THEN
+               IF (array_length(function_arguments, 1) != 5 AND array_length(function_arguments, 1) != 6)
+                  OR NOT _ast_isOMTGDomain(function_arguments[1], function_arguments[2])
+                  OR NOT _ast_isOMTGDomain(function_arguments[3], function_arguments[4])
+                  OR (array_length(function_arguments, 1) = 6 AND NOT _ast_isnumeric(function_arguments[6]))
+               THEN
                   RAISE EXCEPTION 'OMT-G error at TOPOLOGICAL RELATIONSHIP constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Invalid procedure parameters. Usage: ast_topologicalrelationship(''a_tbl'', ''a_geom'', ''b_tbl'', ''b_geom'', ''operator/distance'').';
-               END IF;
-
-               IF NOT _ast_isnumeric(function_arguments[5]) AND NOT _ast_isTopologicalRelationship(function_arguments[5]) THEN
-                  RAISE EXCEPTION 'OMT-G error at TOPOLOGICAL RELATIONSHIP constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Invalid procedure parameters. Usage: ast_topologicalrelationship(''a_tbl'', ''a_geom'', ''b_tbl'', ''b_geom'', ''operator/distance'').';
+                     USING DETAIL = 'Invalid procedure parameters. Usage: ast_topologicalrelationship(''a_tbl'', ''a_geom'', ''b_tbl'', ''b_geom'', ''spatial_relation'', ''''distance'''').';
                END IF;
 
                IF table_name != function_arguments[1] AND table_name != function_arguments[3] THEN
                   RAISE EXCEPTION 'OMT-G error at TOPOLOGICAL RELATIONSHIP constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Table that fires the trigger must be passed as the first procedure parameter.';
+                     USING DETAIL = 'Table that fires the trigger must be passed as the first parameter of the procedure.';
                END IF;
 
                -- only insert or update
@@ -526,6 +541,7 @@ BEGIN
                   'ast_topologicalrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||')'
                );
 
+
             WHEN 'ast_aggregation' THEN
 
                -- number of arguments
@@ -536,7 +552,7 @@ BEGIN
 
                IF table_name != function_arguments[1] THEN
                   RAISE EXCEPTION 'OMT-G error at AGGREGATION constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Part table that fires the trigger must be passed as the first procedure parameter.';
+                     USING DETAIL = 'Part table that fires the trigger must be passed as the first parameter of the procedure.';
                END IF;
 
                IF (not events @> '{insert}' or not events @> '{update}' or not events @> '{delete}') THEN
