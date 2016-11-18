@@ -8,7 +8,7 @@ CREATE TYPE _ast_topologicalrelationship AS ENUM
     'disjoint',
     'distant',
     'intersects',
-    'near'
+    'near',
     'overlaps',
     'touches',
     'within'
