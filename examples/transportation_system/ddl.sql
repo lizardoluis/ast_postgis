@@ -6,7 +6,7 @@
 create table bus_line (
    line_number integer primary key,
    description varchar(50),
-   operator varchar(50)
+   operator varchar(20)
 );
 
 create table school_district (
@@ -22,7 +22,7 @@ create table bus_stop (
 );
 
 create table bus_route_segment (
-   traverse_time real,
+   traverse_time time,
    segment_number integer,
    busline integer references bus_line (line_number),
    geom ast_uniline

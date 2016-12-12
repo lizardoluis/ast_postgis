@@ -214,7 +214,7 @@ Transportation system
 
 The following figure shows a schema fragment for a bus transportation network (nodes at bus stops and unidirectional arcs corresponding to route segments) that serves a set of school districts. A conventional class holds the attributes for the bus line. The schema embeds spatial integrity constraints for (1) the network relationship (each route segment must be related to two bus stops), (2) a “contains” relationship (school district cannot exists without a bus stop), and (3) the geometry of route segments and school districts (lines and polygons must be simple, i.e., with no self-intersections).
 
-<img src="https://github.com/lizardoluis/ast_postgis/blob/master/examples/transportation_system/squema.png" alt="Transportation system schema" width="50%">
+<img src="https://github.com/lizardoluis/ast_postgis/blob/master/examples/transportation_system/schema.png" alt="Transportation system schema" width="50%">
 
 The implementation of this schema that uses the `ast_postgis` extension and considers all the spatial constraints is as follows:
 
