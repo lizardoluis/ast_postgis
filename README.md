@@ -249,7 +249,7 @@ The implementation of this schema that uses the `ast_postgis` extension and cons
          for each statement
          execute procedure ast_topologicalrelationship('school_district', 'geom', 'bus_stop', 'geom', 'contains');
 
-      --bus_route_segment and bus_stop arc-node network constraints:
+      -- bus_route_segment and bus_stop arc-node network constraints:
       create trigger busroute_insert_update_trigger
          after insert or update on bus_route_segment
       	for each statement
