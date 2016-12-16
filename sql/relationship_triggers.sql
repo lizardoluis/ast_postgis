@@ -386,14 +386,14 @@ $$ LANGUAGE plpgsql;
 --
 -- This function returns the name of the column given its type.
 --
-CREATE FUNCTION _ast_createOnDeleteTriggerOnTable(tgrname text, tname text, procedure text) RETURNS void AS $$
+CREATE FUNCTION _ast_createTriggerOnTable(tgrname text, tname text, procedure text, operation text) RETURNS void AS $$
 BEGIN
    -- Check if trigger already exists
    IF NOT _ast_isTriggerEnable(tgrname) THEN
       -- Suspend event trigger to avoid loop
       EXECUTE 'ALTER EVENT TRIGGER ast_validate_triggers DISABLE;';
 
-      EXECUTE 'CREATE TRIGGER '|| tgrname ||' AFTER DELETE ON '|| tname ||'
+      EXECUTE 'CREATE TRIGGER '|| tgrname ||' AFTER '|| operation ||' ON '|| tname ||'
           FOR EACH STATEMENT EXECUTE PROCEDURE '|| procedure ||';';
 
       --RAISE NOTICE 'Trigger created AFTER DELETE on table % with % procedure.', tname, procedure;
@@ -509,10 +509,11 @@ BEGIN
                   on_tbl := function_arguments[1];
                END IF;
 
-               PERFORM _ast_createOnDeleteTriggerOnTable(
+               PERFORM _ast_createTriggerOnTable(
                   split_part(r.object_identity, ' ', 1) ||'_auto',
                   on_tbl,
-                  'ast_arcnodenetwork('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||')'
+                  'ast_arcnodenetwork('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||')',
+                  'delete'
                );
 
 
@@ -540,10 +541,11 @@ BEGIN
                END IF;
 
                IF function_arguments[5] != 'near' and function_arguments[5] != 'distant' THEN
-                  PERFORM _ast_createOnDeleteTriggerOnTable(
+                  PERFORM _ast_createTriggerOnTable(
                      split_part(r.object_identity, ' ', 1) ||'_auto',
                      function_arguments[3],
-                     'ast_topologicalrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||')'
+                     'ast_topologicalrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||')',
+                     'delete'
                   );
                END IF;
 
