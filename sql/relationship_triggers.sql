@@ -221,33 +221,33 @@ BEGIN
    END IF;
 
 
-   IF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') THEN
-
-      -- Trigger table must be the same used on the first parameter
-      IF TG_TABLE_NAME != a_tbl::TEXT THEN
-         RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
-            USING DETAIL = 'Invalid parameters. Table that fires the trigger must be the first parameter of the function when firing after INSERT or UPDATE.';
-      END IF;
-
-   ELSIF TG_OP = 'DELETE' THEN
-
-      -- Trigger table must be the same used on the second parameter
-      IF TG_TABLE_NAME != b_tbl::TEXT THEN
-         RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
-            USING DETAIL = 'Invalid parameters. Table that fires the trigger must be the second parameter of the function when firing after a DELETE.';
-      END IF;
-
-   ELSE
-      RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
-         USING DETAIL = 'Event not supported. Please create a trigger with INSERT, UPDATE or DELETE event.';
-   END IF;
+   -- IF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') THEN
+   --
+   --    -- Trigger table must be the same used on the first parameter
+   --    IF TG_TABLE_NAME != a_tbl::TEXT THEN
+   --       RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
+   --          USING DETAIL = 'Invalid parameters. Table that fires the trigger must be the first parameter of the function when firing after INSERT or UPDATE.';
+   --    END IF;
+   --
+   -- ELSIF TG_OP = 'DELETE' THEN
+   --
+   --    -- Trigger table must be the same used on the second parameter
+   --    IF TG_TABLE_NAME != b_tbl::TEXT THEN
+   --       RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
+   --          USING DETAIL = 'Invalid parameters. Table that fires the trigger must be the second parameter of the function when firing after a DELETE.';
+   --    END IF;
+   --
+   -- ELSE
+   --    RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
+   --       USING DETAIL = 'Event not supported. Please create a trigger with INSERT, UPDATE or DELETE event.';
+   -- END IF;
 
 
    -- Checks if the fourth argument is a number to perform near function or normal.
    IF operator = 'near' THEN
       dist := TG_ARGV[5];
 
-      raise notice 'NEAR %, %, %, %, %', a_tbl, b_tbl, a_geom, b_geom, dist;
+      --raise notice 'NEAR %, %, %, %, %', a_tbl, b_tbl, a_geom, b_geom, dist;
 
       -- Near check
       EXECUTE 'SELECT EXISTS(
@@ -266,7 +266,7 @@ BEGIN
    ELSIF operator = 'distant' THEN
       dist := TG_ARGV[5];
 
-      raise notice 'DISTANT %, %, %, %, %', a_tbl, b_tbl, a_geom, b_geom, dist;
+      --raise notice 'DISTANT %, %, %, %, %', a_tbl, b_tbl, a_geom, b_geom, dist;
 
       -- Distant check
       EXECUTE 'SELECT EXISTS(
@@ -534,13 +534,41 @@ BEGIN
                      USING DETAIL = 'Table that fires the trigger must be passed as the first parameter of the procedure.';
                END IF;
 
-               -- only insert or update
-               IF (not events @> '{insert}' or not events @> '{update}' or events @> '{delete}') THEN
-                  RAISE EXCEPTION 'OMT-G error at TOPOLOGICAL RELATIONSHIP constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'TOPOLOGICAL RELATIONSHIP trigger events must be INSERT OR UPDATE.';
+
+               IF (function_arguments[5] = 'distant') THEN
+
+                  -- INSERT OR UPDATE
+                  IF (not events @> '{insert}' or not events @> '{update}' or events @> '{delete}') THEN
+                     RAISE EXCEPTION 'OMT-G error at TOPOLOGICAL RELATIONSHIP DISTANT constraint, on trigger %.', r.object_identity
+                        USING DETAIL = 'TOPOLOGICAL RELATIONSHIP DISTANT trigger events must be INSERT OR UPDATE.';
+                  END IF;
+
+               ELSIF (function_arguments[5] = 'near') THEN
+
+                  -- DELETE OR UPDATE
+                  IF (not events @> '{delete}' or not events @> '{update}' or events @> '{insert}') THEN
+                     RAISE EXCEPTION 'OMT-G error at TOPOLOGICAL RELATIONSHIP NEAR constraint, on trigger %.', r.object_identity
+                        USING DETAIL = 'TOPOLOGICAL RELATIONSHIP NEAR trigger events must be DELETE OR UPDATE.';
+                  END IF;
+
+               ELSE
+
+                  -- INSERT OR UPDATE
+                  IF (not events @> '{insert}' or not events @> '{update}' or events @> '{delete}') THEN
+                     RAISE EXCEPTION 'OMT-G error at TOPOLOGICAL RELATIONSHIP constraint, on trigger %.', r.object_identity
+                        USING DETAIL = 'TOPOLOGICAL RELATIONSHIP trigger events must be INSERT OR UPDATE.';
+                  END IF;
+
                END IF;
 
-               IF function_arguments[5] != 'near' and function_arguments[5] != 'distant' THEN
+               IF function_arguments[5] = 'near' or function_arguments[5] = 'distant' THEN
+                  PERFORM _ast_createTriggerOnTable(
+                     split_part(r.object_identity, ' ', 1) ||'_auto',
+                     function_arguments[3],
+                     'ast_topologicalrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||', '|| function_arguments[6] ||')',
+                     'insert or update'
+                  );
+               ELSE
                   PERFORM _ast_createTriggerOnTable(
                      split_part(r.object_identity, ' ', 1) ||'_auto',
                      function_arguments[3],
