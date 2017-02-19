@@ -138,7 +138,7 @@ The following procedures can be called by triggers to assert the consistency of 
    </tr>
    <tr>
       <td>Topological Relationship (near)</td>
-      <td><code>ast_topologicalrelationship(a_tbl, a_geom, b_tbl, b_geom, distance)</code></td>
+      <td><code>ast_topologicalrelationship(a_tbl, a_geom, b_tbl, b_geom, spatial_relation, distance)</code></td>
    </tr>
    <tr>
       <td>Arc-Node Network</td>
