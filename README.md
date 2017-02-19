@@ -20,8 +20,6 @@ This module has been tested on:
 And requires the extensions:
 
 * **postgis**
-* **postgis_topology**
-
 
 
 Build and Install
