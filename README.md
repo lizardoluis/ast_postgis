@@ -137,7 +137,7 @@ The following procedures can be called by triggers to assert the consistency of 
       <td><code>ast_topologicalrelationship(a_tbl, a_geom, b_tbl, b_geom, spatial_relation)</code></td>
    </tr>
    <tr>
-      <td>Topological Relationship (near)</td>
+      <td>Topological Relationship (distant, near)</td>
       <td><code>ast_topologicalrelationship(a_tbl, a_geom, b_tbl, b_geom, spatial_relation, distance)</code></td>
    </tr>
    <tr>
@@ -162,6 +162,7 @@ The `spatial_relation` argument, which are passed as an argument to the topologi
 * coveredby
 * crosses
 * disjoint
+* distant
 * intersects
 * near
 * overlaps
