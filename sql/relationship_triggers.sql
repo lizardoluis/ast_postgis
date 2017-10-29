@@ -191,7 +191,7 @@ $$ LANGUAGE plpgsql;
 --
 -- Topological relationship.
 --
-CREATE FUNCTION ast_topologicalrelationship() RETURNS TRIGGER AS $$
+CREATE FUNCTION ast_spatialrelationship() RETURNS TRIGGER AS $$
 DECLARE
    a_tbl CONSTANT REGCLASS := TG_ARGV[0];
    a_geom CONSTANT TEXT := quote_ident(TG_ARGV[1]);
@@ -199,24 +199,24 @@ DECLARE
    b_tbl CONSTANT REGCLASS := TG_ARGV[2];
    b_geom CONSTANT TEXT := quote_ident(TG_ARGV[3]);
 
-   operator _ast_topologicalrelationship := quote_ident(TG_ARGV[4]);
+   operator _ast_spatialrelationship := quote_ident(TG_ARGV[4]);
    dist REAL;
 
    res BOOLEAN;
 BEGIN
 
    IF TG_WHEN != 'AFTER' THEN
-      RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
+      RAISE EXCEPTION 'OMT-G error at ast_spatialrelationship.'
          USING DETAIL = 'Trigger must be fired with AFTER statement.';
    END IF;
 
    IF TG_LEVEL != 'STATEMENT' THEN
-      RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
+      RAISE EXCEPTION 'OMT-G error at ast_spatialrelationship.'
          USING DETAIL = 'Trigger must be of STATEMENT level.';
    END IF;
 
    IF (TG_NARGS != 5 AND TG_NARGS != 6) OR NOT _ast_isOMTGDomain(a_tbl, a_geom) OR NOT _ast_isOMTGDomain(b_tbl, b_geom) THEN
-      RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
+      RAISE EXCEPTION 'OMT-G error at ast_spatialrelationship.'
          USING DETAIL = 'Invalid parameters.';
    END IF;
 
@@ -225,7 +225,7 @@ BEGIN
    --
    --    -- Trigger table must be the same used on the first parameter
    --    IF TG_TABLE_NAME != a_tbl::TEXT THEN
-   --       RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
+   --       RAISE EXCEPTION 'OMT-G error at ast_spatialrelationship.'
    --          USING DETAIL = 'Invalid parameters. Table that fires the trigger must be the first parameter of the function when firing after INSERT or UPDATE.';
    --    END IF;
    --
@@ -233,12 +233,12 @@ BEGIN
    --
    --    -- Trigger table must be the same used on the second parameter
    --    IF TG_TABLE_NAME != b_tbl::TEXT THEN
-   --       RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
+   --       RAISE EXCEPTION 'OMT-G error at ast_spatialrelationship.'
    --          USING DETAIL = 'Invalid parameters. Table that fires the trigger must be the second parameter of the function when firing after a DELETE.';
    --    END IF;
    --
    -- ELSE
-   --    RAISE EXCEPTION 'OMT-G error at ast_topologicalrelationship.'
+   --    RAISE EXCEPTION 'OMT-G error at ast_spatialrelationship.'
    --       USING DETAIL = 'Event not supported. Please create a trigger with INSERT, UPDATE or DELETE event.';
    -- END IF;
 
@@ -259,7 +259,7 @@ BEGIN
       );' into res;
 
       IF res THEN
-         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation between % and %.', a_tbl, b_tbl
+         RAISE EXCEPTION 'OMT-G Spatial Relationship constraint violation between % and %.', a_tbl, b_tbl
             USING DETAIL = 'Spatial objects are not inside the given distance.';
       END IF;
 
@@ -278,7 +278,7 @@ BEGIN
       );' into res;
 
       IF res THEN
-         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation between ''%'' and ''%''.', a_tbl, b_tbl
+         RAISE EXCEPTION 'OMT-G Spatial Relationship constraint violation between ''%'' and ''%''.', a_tbl, b_tbl
             USING DETAIL = 'Spatial objects are not outside the given distance.';
       END IF;
 
@@ -294,7 +294,7 @@ BEGIN
       );' into res;
 
       IF res THEN
-         RAISE EXCEPTION 'OMT-G Topological Relationship constraint violation (%) between tables ''%'' and ''%''.', operator::text, a_tbl, b_tbl;
+         RAISE EXCEPTION 'OMT-G Spatial Relationship constraint violation (%) between tables ''%'' and ''%''.', operator::text, a_tbl, b_tbl;
       END IF;
 
    END IF;
@@ -517,7 +517,7 @@ BEGIN
                );
 
 
-            WHEN 'ast_topologicalrelationship' THEN
+            WHEN 'ast_spatialrelationship' THEN
 
                -- number of arguments
                IF (array_length(function_arguments, 1) != 5 AND array_length(function_arguments, 1) != 6)
@@ -526,7 +526,7 @@ BEGIN
                   OR (array_length(function_arguments, 1) = 6 AND NOT _ast_isnumeric(function_arguments[6]))
                THEN
                   RAISE EXCEPTION 'OMT-G error at TOPOLOGICAL RELATIONSHIP constraint, on trigger %.', r.object_identity
-                     USING DETAIL = 'Invalid procedure parameters. Usage: ast_topologicalrelationship(''a_tbl'', ''a_geom'', ''b_tbl'', ''b_geom'', ''spatial_relation'', ''''distance'''').';
+                     USING DETAIL = 'Invalid procedure parameters. Usage: ast_spatialrelationship(''a_tbl'', ''a_geom'', ''b_tbl'', ''b_geom'', ''spatial_relation'', ''''distance'''').';
                END IF;
 
                IF table_name != function_arguments[1] AND table_name != function_arguments[3] THEN
@@ -565,14 +565,14 @@ BEGIN
                   PERFORM _ast_createTriggerOnTable(
                      split_part(r.object_identity, ' ', 1) ||'_auto',
                      function_arguments[3],
-                     'ast_topologicalrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||', '|| function_arguments[6] ||')',
+                     'ast_spatialrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||', '|| function_arguments[6] ||')',
                      'insert or update'
                   );
                ELSE
                   PERFORM _ast_createTriggerOnTable(
                      split_part(r.object_identity, ' ', 1) ||'_auto',
                      function_arguments[3],
-                     'ast_topologicalrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||')',
+                     'ast_spatialrelationship('|| function_arguments[1] ||', '|| function_arguments[2] ||', '|| function_arguments[3] ||', '|| function_arguments[4] ||', '|| function_arguments[5] ||')',
                      'delete'
                   );
                END IF;

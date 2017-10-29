@@ -2,7 +2,7 @@
 -- This function checks if all the elements of b_tbl is within the buffer
 -- distance from the elements of a_tbl.
 --
-create function ast_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real)
+create function ast_isSpatialRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real)
    returns boolean as $$
 declare
    pkColumn text := _ast_getPrimaryKeyColumn(b_tbl);
@@ -10,14 +10,14 @@ declare
 begin
 
    if pkColumn = '' then
-      raise exception 'AST_isTopologicalRelationshipValid function error.'
+      raise exception 'AST_isSpatialRelationshipValid function error.'
          using detail = 'Table passed as first parameter does not have primary key and without it is not possible to validate the topological relationship.';
       return false;
    end if;
 
    if not _ast_isOMTGDomain(a_tbl, a_geom) or not _ast_isOMTGDomain(b_tbl, b_geom) then
-      raise exception 'AST_isTopologicalRelationshipValid error! Invalid parameters.'
-         using detail = 'Usage: SELECT ast_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real);';
+      raise exception 'AST_isSpatialRelationshipValid error! Invalid parameters.'
+         using detail = 'Usage: SELECT ast_isSpatialRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, dist real);';
    end if;
 
    execute 'insert into ast_violation_log (time, type, description) (
@@ -44,7 +44,7 @@ $$  language plpgsql;
 --
 -- This function checks if the topolotical relationship is valid.
 --
-create function ast_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation text)
+create function ast_isSpatialRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation text)
    returns boolean as $$
 declare
    pkColumn text := _ast_getPrimaryKeyColumn(a_tbl);
@@ -52,13 +52,13 @@ declare
 begin
 
    if pkColumn = '' then
-      raise exception 'AST_isTopologicalRelationshipValid function error.'
+      raise exception 'AST_isSpatialRelationshipValid function error.'
          using detail = 'Table passed as first parameter does not have primary key and without it is not possible to validate the topological relationship.';
    end if;
 
-   if not _ast_isOMTGDomain(a_tbl, a_geom) or not _ast_isOMTGDomain(b_tbl, b_geom) or not _ast_isTopologicalRelationship(relation)  then
-      raise exception 'AST_isTopologicalRelationshipValid error! Invalid parameters.'
-         using detail = 'Usage: SELECT ast_isTopologicalRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation text);';
+   if not _ast_isOMTGDomain(a_tbl, a_geom) or not _ast_isOMTGDomain(b_tbl, b_geom) or not _ast_isSpatialRelationship(relation)  then
+      raise exception 'AST_isSpatialRelationshipValid error! Invalid parameters.'
+         using detail = 'Usage: SELECT ast_isSpatialRelationshipValid(a_tbl text, a_geom text, b_tbl text, b_geom text, relation text);';
    end if;
 
    execute 'insert into ast_violation_log (time, type, description) (
