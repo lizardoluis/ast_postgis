@@ -45,6 +45,12 @@ After you've built and installed the artifacts, fire up `psql`:
 
 ## Docker ##
 
+Use the pre-builded docker with:
+
+```
+docker run -v ${HOME}/pgdata:/var/lib/postgresql/data --net=host gabrielmcf/ast_postgis:9.5-2.2-1.0
+```
+
 Build the docker using:
 
 ```
