@@ -3,7 +3,7 @@
 --
 CREATE FUNCTION _ast_isSpatialRelationship(operator text) RETURNS BOOLEAN AS $$
 DECLARE
-   tr _ast_spatialrelationship;
+   tr _ast_topologicalrelationship;
 BEGIN
    tr := operator;
    RETURN TRUE;
