@@ -43,7 +43,25 @@ After you've built and installed the artifacts, fire up `psql`:
 
       postgres=# CREATE EXTENSION ast_postgis;
 
+## Docker ##
 
+Use the pre-builded docker with:
+
+```
+docker run -v ${HOME}/pgdata:/var/lib/postgresql/data --net=host gabrielmcf/ast_postgis:9.5-2.2-1.0
+```
+
+Build the docker using:
+
+```
+docker build --rm -f Dockerfile -t ast_postgis:9.5-2.2-1.0 .
+```
+
+Run the server using:
+
+```
+docker run -v ${HOME}/pgdata:/var/lib/postgresql/data --net=host ast_postgis:9.5-2.2-1.0
+```
 
 Usage
 =====
