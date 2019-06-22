@@ -1,7 +1,7 @@
 --
 -- Check if the operator is a valid topological relationship
 --
-CREATE FUNCTION _ast_isTopologicalRelationship(operator text) RETURNS BOOLEAN AS $$
+CREATE FUNCTION _ast_isSpatialRelationship(operator text) RETURNS BOOLEAN AS $$
 DECLARE
    tr _ast_topologicalrelationship;
 BEGIN

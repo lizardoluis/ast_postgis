@@ -20,8 +20,6 @@ This module has been tested on:
 And requires the extensions:
 
 * **postgis**
-* **postgis_topology**
-
 
 
 Build and Install
@@ -45,7 +43,25 @@ After you've built and installed the artifacts, fire up `psql`:
 
       postgres=# CREATE EXTENSION ast_postgis;
 
+## Docker ##
 
+Use the pre-builded docker with:
+
+```
+docker run -v ${HOME}/pgdata:/var/lib/postgresql/data --net=host gabrielmcf/ast_postgis:9.5-2.2-1.0
+```
+
+Build the docker using:
+
+```
+docker build --rm -f Dockerfile -t ast_postgis:9.5-2.2-1.0 .
+```
+
+Run the server using:
+
+```
+docker run -v ${HOME}/pgdata:/var/lib/postgresql/data --net=host ast_postgis:9.5-2.2-1.0
+```
 
 Usage
 =====
@@ -139,8 +155,8 @@ The following procedures can be called by triggers to assert the consistency of 
       <td><code>ast_topologicalrelationship(a_tbl, a_geom, b_tbl, b_geom, spatial_relation)</code></td>
    </tr>
    <tr>
-      <td>Topological Relationship (near)</td>
-      <td><code>ast_topologicalrelationship(a_tbl, a_geom, b_tbl, b_geom, distance)</code></td>
+      <td>Topological Relationship (distant, near)</td>
+      <td><code>ast_topologicalrelationship(a_tbl, a_geom, b_tbl, b_geom, spatial_relation, distance)</code></td>
    </tr>
    <tr>
       <td>Arc-Node Network</td>
@@ -164,6 +180,7 @@ The `spatial_relation` argument, which are passed as an argument to the topologi
 * coveredby
 * crosses
 * disjoint
+* distant
 * intersects
 * near
 * overlaps
