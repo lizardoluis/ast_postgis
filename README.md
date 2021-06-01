@@ -279,3 +279,13 @@ License and Copyright
 AST-PostGIS is released under a [MIT license](doc/LICENSE).
 
 Copyright (c) 2016 Luís Eduardo Oliveira Lizardo.
+
+
+References
+----------
+
+[1] K. A. V. Borges, C. A. Davis Jr., and A. H. F. Laender. OMT-G: an object-oriented data model for geographic applications. GeoInformatica, 5(3):221–260, 2001.
+
+[2] L. E. O. Lizardo and C. A. Davis Jr. OMT-G Designer: a web tool for modeling geographic databases in OMT-G. In Advances in Conceptual Modeling: 33rd International Conference on Conceptual Modeling, ER 2014, volume 8823 of Lecture Notes in Computer Science, pages 228–233. Springer International Publishing, 2014.
+
+[3] Lizardo, L. E. O., & Davis Jr, C. A. (2017, November). A PostGIS extension to support advanced spatial data types and integrity constraints. In Proceedings of the 25th ACM SIGSPATIAL International Conference on Advances in Geographic Information Systems (pp. 1-10).
