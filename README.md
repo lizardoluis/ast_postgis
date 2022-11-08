@@ -63,6 +63,11 @@ Run the server using:
 docker run -v ${HOME}/pgdata:/var/lib/postgresql/data --net=host ast_postgis:9.5-2.2-1.0
 ```
 
+## On Windows ##
+
+Execute `install-ast_postgis.bat` as administrator. 
+You'll be prompted for your username, password and database name.
+
 Usage
 =====
 
