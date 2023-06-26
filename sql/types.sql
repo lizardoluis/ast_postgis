@@ -1,4 +1,4 @@
-CREATE TYPE _ast_topologicalrelationship AS ENUM
+CREATE TYPE _ast_spatialrelationship AS ENUM
 (
     'contains',
     'containsproperly',

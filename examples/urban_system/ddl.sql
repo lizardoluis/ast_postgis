@@ -89,7 +89,7 @@ CREATE TRIGGER Aggr_Boundary_Neighborhood
 CREATE TRIGGER Industry_Parcel_Within
    AFTER INSERT OR UPDATE ON Industry
    FOR EACH STATEMENT EXECUTE PROCEDURE
-      ast_topologicalrelationship('Industry', 'geom', 'Parcel', 'geom', 'within');
+      ast_spatialrelationship('Industry', 'geom', 'Parcel', 'geom', 'within');
 
 --
 -- Topological relationship between Block and City
@@ -97,7 +97,7 @@ CREATE TRIGGER Industry_Parcel_Within
 CREATE TRIGGER Block_City_Boundary_Within
    AFTER INSERT OR UPDATE ON Block
    FOR EACH STATEMENT EXECUTE PROCEDURE
-      ast_topologicalrelationship('Block', 'geom', 'City', 'geom_boundary', 'within');
+      ast_spatialrelationship('Block', 'geom', 'City', 'geom_boundary', 'within');
 
 --
 -- Topological relationship between Parcel and  Address
@@ -105,7 +105,7 @@ CREATE TRIGGER Block_City_Boundary_Within
 CREATE TRIGGER Parcel_Address_Contains
    AFTER INSERT OR UPDATE ON Parcel
    FOR EACH STATEMENT EXECUTE PROCEDURE
-      ast_topologicalrelationship('Parcel', 'geom', 'Address', 'geom', 'contains');
+      ast_spatialrelationship('Parcel', 'geom', 'Address', 'geom', 'contains');
 
 --
 -- Topological relationship between Nature_Reserve and Industry
@@ -113,7 +113,7 @@ CREATE TRIGGER Parcel_Address_Contains
 CREATE TRIGGER Nature_Reserve_Industry_Distant
    AFTER INSERT OR UPDATE ON Nature_Reserve
    FOR EACH STATEMENT EXECUTE PROCEDURE
-      ast_topologicalrelationship('Nature_Reserve', 'geom', 'Industry', 'geom', 'distant', '800');
+      ast_spatialrelationship('Nature_Reserve', 'geom', 'Industry', 'geom', 'distant', '800');
 
 --
 -- Arc-Node network between Street_Segment and Crossing
