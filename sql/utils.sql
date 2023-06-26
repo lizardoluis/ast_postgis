@@ -159,7 +159,7 @@ BEGIN
    function_name := r_trigger.tgfoid::regproc;
 
    -- Get function arguments
-   v_execute_clause := ' EXECUTE PROCEDURE ' || r_trigger.tgfoid::regproc || E'\\(';
+   v_execute_clause := ' EXECUTE FUNCTION ' || r_trigger.tgfoid::regproc || E'\\(';
    v_array := regexp_split_to_array( v_work, v_execute_clause );
    function_arguments :=  array_remove(regexp_split_to_array(rtrim( v_array[2], ')' ), '\W+'), '');
 
@@ -195,6 +195,10 @@ DECLARE
    el text;
    r text[];
 BEGIN
+   IF p_input IS NULL THEN
+      RETURN NULL;
+   END IF;
+
    FOREACH el IN ARRAY p_input LOOP
       r := r || btrim(lower(el))::text;
    END LOOP;
