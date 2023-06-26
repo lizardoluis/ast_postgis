@@ -34,7 +34,7 @@ create table bus_route_segment (
 CREATE TRIGGER school_district_contains_trigger
    AFTER INSERT OR UPDATE ON school_district
    FOR EACH STATEMENT
-   EXECUTE PROCEDURE ast_topologicalrelationship('school_district', 'geom', 'bus_stop', 'geom', 'contains');
+   EXECUTE PROCEDURE ast_spatialrelationship('school_district', 'geom', 'bus_stop', 'geom', 'contains');
 
 --
 -- Bus_route_segment and Bus_stop arc-node network constraints

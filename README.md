@@ -157,11 +157,11 @@ The following procedures can be called by triggers to assert the consistency of 
    </thead>
    <tr>
       <td>Topological Relationship</td>
-      <td><code>ast_topologicalrelationship(a_tbl, a_geom, b_tbl, b_geom, spatial_relation)</code></td>
+      <td><code>ast_spatialrelationship(a_tbl, a_geom, b_tbl, b_geom, spatial_relation)</code></td>
    </tr>
    <tr>
       <td>Topological Relationship (distant, near)</td>
-      <td><code>ast_topologicalrelationship(a_tbl, a_geom, b_tbl, b_geom, spatial_relation, distance)</code></td>
+      <td><code>ast_spatialrelationship(a_tbl, a_geom, b_tbl, b_geom, spatial_relation, distance)</code></td>
    </tr>
    <tr>
       <td>Arc-Node Network</td>
@@ -269,7 +269,7 @@ The implementation of this schema that uses the `ast_postgis` extension and cons
       create trigger school_district_contains_trigger
          after insert or update on school_district
          for each statement
-         execute procedure ast_topologicalrelationship('school_district', 'geom', 'bus_stop', 'geom', 'contains');
+         execute procedure ast_spatialrelationship('school_district', 'geom', 'bus_stop', 'geom', 'contains');
 
       -- bus_route_segment and bus_stop arc-node network constraints:
       create trigger busroute_insert_update_trigger

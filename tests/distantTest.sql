@@ -11,7 +11,7 @@ create table gas_station (
 CREATE TRIGGER distant_trigger
 AFTER INSERT OR UPDATE ON school
    FOR EACH STATEMENT
-   EXECUTE PROCEDURE ast_topologicalrelationship('school', 'geom', 'gas_station', 'geom', 'distant', 2);
+   EXECUTE PROCEDURE ast_spatialrelationship('school', 'geom', 'gas_station', 'geom', 'distant', 2);
 
 
 delete from school;

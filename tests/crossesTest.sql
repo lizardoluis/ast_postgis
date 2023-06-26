@@ -27,7 +27,7 @@ INSERT INTO tableb(id, geom) VALUES
    CREATE TRIGGER crosses_trigger
    AFTER INSERT OR UPDATE ON tablea
    	FOR EACH STATEMENT
-   	EXECUTE PROCEDURE ast_topologicalrelationship('tablea', 'geom', 'tableb', 'geom', 'crosses');
+   	EXECUTE PROCEDURE ast_spatialrelationship('tablea', 'geom', 'tableb', 'geom', 'crosses');
 
 
    select not exists(

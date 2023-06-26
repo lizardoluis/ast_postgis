@@ -189,7 +189,7 @@ $$ LANGUAGE plpgsql;
 
 
 --
--- Topological relationship.
+-- Spatial relationship.
 --
 CREATE FUNCTION ast_spatialrelationship() RETURNS TRIGGER AS $$
 DECLARE
@@ -199,7 +199,7 @@ DECLARE
    b_tbl CONSTANT REGCLASS := TG_ARGV[2];
    b_geom CONSTANT TEXT := quote_ident(TG_ARGV[3]);
 
-   operator _ast_topologicalrelationship := quote_ident(TG_ARGV[4]);
+   operator _ast_spatialrelationship := quote_ident(TG_ARGV[4]);
    dist REAL;
 
    res BOOLEAN;
