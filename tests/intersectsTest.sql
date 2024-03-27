@@ -10,9 +10,9 @@ create table tableb (
 
 delete from tablea;
 INSERT INTO tablea(id, geom) VALUES
-   (1, ST_GeomFromText('POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))') ),
-   (2, ST_GeomFromText('POLYGON((1 0, 1 1, 2 1, 2 0, 1 0))') ),
-   (3, ST_GeomFromText('POLYGON((1 1, 1 2, 2 2, 2 1, 1 1))') );
+   (1, ST_GeomFromText('MULTIPOLYGON(((0 0, 0 1, 1 1, 1 0, 0 0)))') ),
+   (2, ST_GeomFromText('MULTIPOLYGON(((1 0, 1 1, 2 1, 2 0, 1 0)))') ),
+   (3, ST_GeomFromText('MULTIPOLYGON(((1 1, 1 2, 2 2, 2 1, 1 1)))') );
 
 delete from tableb;
 INSERT INTO tableb(id, geom) VALUES

@@ -19,14 +19,14 @@ AFTER INSERT OR UPDATE OR DELETE ON tableb
 
 delete from tablea;
 INSERT INTO tablea(id, geom) VALUES
-   (1, ST_GeomFromText('POLYGON((1 1, 1 4, 4 4, 4 1, 1 1))') );
+   (1, ST_GeomFromText('MULTIPOLYGON(((1 1, 1 4, 4 4, 4 1, 1 1)))') );
 
 delete from tableb;
 INSERT INTO tableb(id, geom) VALUES
-   (1, ST_GeomFromText('POLYGON((1 3, 1 4, 4 4, 4 3, 1 3))') ),
-   (2, ST_GeomFromText('POLYGON((2 2, 2 3, 3 3, 3 2, 2 2))') ),
-   (3, ST_GeomFromText('POLYGON((1 1, 1 3, 2 3, 2 1, 1 1))') ),
-   (4, ST_GeomFromText('POLYGON((2 1, 2 2, 3 2, 3 3, 4 3, 4 1, 2 1))') );
+   (1, ST_GeomFromText('MULTIPOLYGON(((1 3, 1 4, 4 4, 4 3, 1 3)))') ),
+   (2, ST_GeomFromText('MULTIPOLYGON(((2 2, 2 3, 3 3, 3 2, 2 2)))') ),
+   (3, ST_GeomFromText('MULTIPOLYGON(((1 1, 1 3, 2 3, 2 1, 1 1)))') ),
+   (4, ST_GeomFromText('MULTIPOLYGON(((2 1, 2 2, 3 2, 3 3, 4 3, 4 1, 2 1)))') );
 
 
 
@@ -37,11 +37,11 @@ INSERT INTO tableb(id, geom) VALUES
 
    delete from tabled;
    INSERT INTO tabled(id, geom) VALUES
-      (1, ST_GeomFromText('POLYGON((1 3, 1 4, 4 4, 4 3, 1 3))') ),
-      (2, ST_GeomFromText('POLYGON((2 2, 2 3, 3 3, 3 2, 2 2))') ),
-      (3, ST_GeomFromText('POLYGON((1 1, 1 3, 2 3, 2 1, 1 1))') ),
-      (4, ST_GeomFromText('POLYGON((2 1, 2 2, 3 2, 3 3, 4 3, 4 1, 2 1))') ),
-      (5, ST_GeomFromText('POLYGON((0.5 0.5, 0.5 3.5, 2.5 3.5, 2.5 0.5, 0.5 0.5))') );
+      (1, ST_GeomFromText('MULTIPOLYGON(((1 3, 1 4, 4 4, 4 3, 1 3)))') ),
+      (2, ST_GeomFromText('MULTIPOLYGON(((2 2, 2 3, 3 3, 3 2, 2 2)))') ),
+      (3, ST_GeomFromText('MULTIPOLYGON(((1 1, 1 3, 2 3, 2 1, 1 1)))') ),
+      (4, ST_GeomFromText('MULTIPOLYGON(((2 1, 2 2, 3 2, 3 3, 4 3, 4 1, 2 1)))') ),
+      (5, ST_GeomFromText('MULTIPOLYGON(((0.5 0.5, 0.5 3.5, 2.5 3.5, 2.5 0.5, 0.5 0.5)))') );
 
 
    SELECT *
@@ -90,13 +90,13 @@ on st_intersects(a.geom, b.geom);
 
 delete from tablea;
 INSERT INTO tablea(id, geom) VALUES
-   (1, ST_GeomFromText('POLYGON((1 1, 1 4, 4 4, 4 1, 1 1))') ),
-   (2, ST_GeomFromText('POLYGON((5 5, 5 6, 6 6, 6 5, 5 5))') );
+   (1, ST_GeomFromText('MULTIPOLYGON(((1 1, 1 4, 4 4, 4 1, 1 1)))') ),
+   (2, ST_GeomFromText('MULTIPOLYGON(((5 5, 5 6, 6 6, 6 5, 5 5)))') );
 
 delete from tableb;
 INSERT INTO tableb(id, geom) VALUES
-      (1, ST_GeomFromText('POLYGON((1 3, 1 4, 4 4, 4 3, 1 3))') ),
-      (2, ST_GeomFromText('POLYGON((2 2, 2 3, 3 3, 3 2, 2 2))') ),
-      (3, ST_GeomFromText('POLYGON((1 1, 1 3, 2 3, 2 1, 1 1))') ),
-      (4, ST_GeomFromText('POLYGON((2 1, 2 2, 3 2, 3 3, 4 3, 4 1, 2 1))') ),
-      (5, ST_GeomFromText('POLYGON((5 5, 5 6, 6 6, 6 5, 5 5))') );
+      (1, ST_GeomFromText('MULTIPOLYGON(((1 3, 1 4, 4 4, 4 3, 1 3)))') ),
+      (2, ST_GeomFromText('MULTIPOLYGON(((2 2, 2 3, 3 3, 3 2, 2 2)))') ),
+      (3, ST_GeomFromText('MULTIPOLYGON(((1 1, 1 3, 2 3, 2 1, 1 1)))') ),
+      (4, ST_GeomFromText('MULTIPOLYGON(((2 1, 2 2, 3 2, 3 3, 4 3, 4 1, 2 1)))') ),
+      (5, ST_GeomFromText('MULTIPOLYGON(((5 5, 5 6, 6 6, 6 5, 5 5)))') );

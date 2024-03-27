@@ -90,7 +90,7 @@ The following table shows the eleven advanced spatial data types implemented by 
    <tr>
       <td>Polygon</td>
       <td><code>ast_polygon</code></td>
-      <td><code>geometry(polygon)</code></td>
+      <td><code>geometry(multipolygon)</code></td>
    </tr>
    <tr>
       <td>Line</td>
@@ -115,7 +115,7 @@ The following table shows the eleven advanced spatial data types implemented by 
    <tr>
       <td>Planar subdivision</td>
       <td><code>ast_planarsubdivision</code></td>
-      <td><code>geometry(polygon)</code></td>
+      <td><code>geometry(multipolygon)</code></td>
    </tr>
    <tr>
       <td>Triangular Irregular Network (TIN)</td>

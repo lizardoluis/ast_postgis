@@ -1,7 +1,7 @@
 --
 -- Polygon
 --
-create domain AST_POLYGON as GEOMETRY(POLYGON)
+create domain AST_POLYGON as GEOMETRY(MULTIPOLYGON)
     constraint simple_polygon_constraint check (_ast_isSimpleGeometry(VALUE));
 
 --
@@ -29,7 +29,7 @@ create domain AST_ISOLINE as GEOMETRY(LINESTRING)
 --
 -- Planar subdivision
 --
-create domain AST_PLANARSUBDIVISION as GEOMETRY(POLYGON)
+create domain AST_PLANARSUBDIVISION as GEOMETRY(MULTIPOLYGON)
     constraint simple_planarsubdivision_constraint check (_ast_isSimpleGeometry(VALUE));
 --
 -- TIN

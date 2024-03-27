@@ -20,8 +20,8 @@ INSERT INTO tablea(id, geom) VALUES
 
 delete from tableb;
 INSERT INTO tableb(id, geom) VALUES
-   (10, ST_GeomFromText('POLYGON((0 0, 0 2, 2 2, 2 0, 0 0))') ),
-   (20, ST_GeomFromText('POLYGON((2 0, 2 2, 4 2, 4 0, 2 0))') );
+   (10, ST_GeomFromText('MULTIPOLYGON(((0 0, 0 2, 2 2, 2 0, 0 0)))') ),
+   (20, ST_GeomFromText('MULTIPOLYGON(((2 0, 2 2, 4 2, 4 0, 2 0)))') );
 
 
    CREATE TRIGGER crosses_trigger
