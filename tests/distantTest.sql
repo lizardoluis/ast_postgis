@@ -24,6 +24,6 @@ delete from gas_station;
 INSERT INTO gas_station(id, geom) VALUES
 	(3, ST_GeomFromText('POINT(3 0)')),
 	(4, ST_GeomFromText('POINT(4 0)')),
-	(5, ST_GeomFromText('POINT(5 0)'));
+	(5, ST_GeomFromText('POINT(5 0)')),
    (6, ST_GeomFromText('POINT(6 0)')),
    (7, ST_GeomFromText('POINT(7 0)'));

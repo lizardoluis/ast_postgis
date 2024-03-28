@@ -14,8 +14,8 @@ create table tableb (
 
 delete from tablea;
 INSERT INTO tablea(id, geom) VALUES
-   (1, ST_GeomFromText('LINESTRING(1 1, 5 1)') ),
-   (2, ST_GeomFromText('LINESTRING(1 3, 5 3)') );
+   (1, ST_GeomFromText('MULTILINESTRING((1 1, 5 1))') ),
+   (2, ST_GeomFromText('MULTILINESTRING((1 3, 5 3))') );
 
 
 delete from tableb;

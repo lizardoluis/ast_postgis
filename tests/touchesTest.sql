@@ -1,3 +1,4 @@
+drop table tablea;
 create table tablea (
    id integer primary key,
    geom ast_polygon
@@ -24,7 +25,7 @@ INSERT INTO tableb(id, geom) VALUES
 
 
 
-   select not exists(
+select not exists(
       select 1
       from tablea as a
       left join tableb as b

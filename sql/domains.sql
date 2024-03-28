@@ -7,7 +7,7 @@ create domain AST_POLYGON as GEOMETRY(MULTIPOLYGON)
 --
 -- Line
 --
-create domain AST_LINE as GEOMETRY(LINESTRING)
+create domain AST_LINE as GEOMETRY(MULTILINESTRING)
     constraint simple_line_constraint check (_ast_isSimpleGeometry(VALUE));
 
 --

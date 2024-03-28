@@ -1,3 +1,4 @@
+DROP TABLE Curvas;
 CREATE TABLE Curvas (
   id SERIAL,
   name VARCHAR(50),

@@ -48,7 +48,7 @@ INSERT INTO tableb(id, geom) VALUES
 FROM tablea AS a
 LEFT JOIN tableb AS b
 ON NOT ST_COVERS(a.geom, b.geom)
-WHERE b.geom IS NOT NULL
+WHERE b.geom IS NOT NULL;
 
 
 

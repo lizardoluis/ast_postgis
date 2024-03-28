@@ -1,8 +1,10 @@
+drop table tablea;
 create table tablea (
    id integer primary key,
    geom ast_point
 );
 
+drop table tableb;
 create table tableb (
    id integer primary key,
    geom ast_point
@@ -27,10 +29,10 @@ delete from tablec;
       VALUES (ST_GeomFromText('LINESTRING(0 0, 20 0)') );
 
 
-   select exists(
+select exists(
    select 1
    from tablea as a
    left join tableb as b
    on st_dwithin(a.geom, b.geom, 0.5)
    where b.geom is not null
-   );
+);

@@ -95,7 +95,7 @@ The following table shows the eleven advanced spatial data types implemented by 
    <tr>
       <td>Line</td>
       <td><code>ast_line</code></td>
-      <td><code>geometry(linestring)</code></td>
+      <td><code>geometry(multilinestring)</code></td>
    </tr>
    <tr>
       <td>Point</td>
