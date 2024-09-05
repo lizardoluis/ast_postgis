@@ -14,7 +14,7 @@ Compatibility
 
 This module has been tested on:
 
-* **Postgres 9.5**
+* **Postgres 15**
 * **PostGIS 2.2**
 
 And requires the extensions:
